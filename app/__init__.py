@@ -1,0 +1,1 @@
+"""Universal log framework package."""

@@ -1,0 +1,1 @@
+<34>Aug  5 12:00:00 fw-01 firewall: src=10.0.0.12 dst=10.0.0.15 action=deny msg=blocked connection

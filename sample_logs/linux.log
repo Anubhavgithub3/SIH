@@ -1,0 +1,2 @@
+Aug  5 12:00:00 web-01 sshd[1234]: Failed password for invalid user root from 192.168.1.10 port 22 ssh2
+Aug  5 12:05:00 web-01 sudo: pam_unix(sudo:session): session opened for user admin by admin(uid=0)
