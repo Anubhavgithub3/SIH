@@ -1,0 +1,12 @@
+services:
+  # Option 1: Unified Service (FastAPI + React Frontend)
+  - type: web
+    name: universal-log-framework
+    runtime: python
+    buildCommand: "./build.sh"
+    startCommand: "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.0
+      - key: NODE_VERSION
+        value: 20.10.0

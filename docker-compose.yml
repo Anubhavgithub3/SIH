@@ -4,5 +4,11 @@ services:
   app:
     build: .
     ports:
-      - '8000:8000'
+      - "${PORT:-8000}:${PORT:-8000}"
+    env_file:
+      - .env
+    environment:
+      - PORT=${PORT:-8000}
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
     restart: unless-stopped
