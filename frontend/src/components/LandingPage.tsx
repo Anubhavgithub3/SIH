@@ -67,31 +67,31 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   const pillars = [
     {
       icon: Layers,
-      color: '#3b82f6',
+      color: '#3B8FF3',
       title: 'Heterogeneous Ingestion',
       desc: 'Ingests RFC3164 Syslog, CEF, LEEF, JSON, and Key-Value log streams with zero vendor lock-in.',
     },
     {
       icon: ShieldCheck,
-      color: '#10b981',
+      color: '#34B1AA',
       title: 'Canonical Normalization',
       desc: 'Transforms fragmented vendor formats into a standardized, validated schema with unified field mappings.',
     },
     {
       icon: Globe2,
-      color: '#06b6d4',
+      color: '#F29F67',
       title: 'GeoIP & CTI Enrichment',
       desc: 'Automatically tags autonomous system numbers, country coordinates, and IP reputation intelligence.',
     },
     {
       icon: Cpu,
-      color: '#8b5cf6',
+      color: '#E0B50F',
       title: 'Random Forest ML Engine',
       desc: 'Lightweight scikit-learn model calculates real-time probabilistic anomaly scores and threat postures.',
     },
     {
       icon: Activity,
-      color: '#f59e0b',
+      color: '#34B1AA',
       title: 'Real-Time Telemetry',
       desc: 'Visual velocity timeline, threat gauges, severity distributions, and source telemetry charts.',
     },

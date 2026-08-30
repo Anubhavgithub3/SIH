@@ -53,7 +53,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className="sidebar-header">
         <div className="sidebar-brand" onClick={() => setCurrentView('landing')}>
           <div className="sidebar-brand-icon">
-            <ShieldCheck size={22} className="text-cyan" />
+            <ShieldCheck size={22} className="text-coral" />
             <div className="brand-glow" />
           </div>
           {!collapsed && (

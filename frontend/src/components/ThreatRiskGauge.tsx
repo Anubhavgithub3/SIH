@@ -19,9 +19,9 @@ export const ThreatRiskGauge: React.FC<ThreatRiskGaugeProps> = ({ mlInsights }) 
 
   const getColor = (pct: number) => {
     if (pct >= 80) return { stroke: '#ef4444', glow: 'rgba(239, 68, 68, 0.4)', text: '#f87171' };
-    if (pct >= 55) return { stroke: '#f59e0b', glow: 'rgba(245, 158, 11, 0.4)', text: '#fbbf24' };
-    if (pct >= 30) return { stroke: '#06b6d4', glow: 'rgba(6, 182, 212, 0.4)', text: '#22d3ee' };
-    return { stroke: '#10b981', glow: 'rgba(16, 185, 129, 0.4)', text: '#34d399' };
+    if (pct >= 60) return { stroke: '#F29F67', glow: 'rgba(242, 159, 103, 0.4)', text: '#F29F67' };
+    if (pct >= 35) return { stroke: '#E0B50F', glow: 'rgba(224, 181, 15, 0.4)', text: '#E0B50F' };
+    return { stroke: '#34B1AA', glow: 'rgba(52, 177, 170, 0.4)', text: '#34B1AA' };
   };
 
   const theme = getColor(percentage);
@@ -43,9 +43,9 @@ export const ThreatRiskGauge: React.FC<ThreatRiskGaugeProps> = ({ mlInsights }) 
         <svg className="gauge-svg" viewBox="0 0 200 160">
           <defs>
             <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#10b981" />
-              <stop offset="35%" stopColor="#06b6d4" />
-              <stop offset="70%" stopColor="#f59e0b" />
+              <stop offset="0%" stopColor="#34B1AA" />
+              <stop offset="40%" stopColor="#E0B50F" />
+              <stop offset="75%" stopColor="#F29F67" />
               <stop offset="100%" stopColor="#ef4444" />
             </linearGradient>
             <filter id="gaugeGlow">

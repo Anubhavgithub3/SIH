@@ -36,13 +36,13 @@ export const SeverityDonutChart: React.FC<SeverityDonutChartProps> = ({ events }
 
   const slices = [
     { label: 'Critical', key: 'critical', count: counts.critical, color: '#ef4444' },
-    { label: 'High', key: 'high', count: counts.high, color: '#f97316' },
-    { label: 'Medium', key: 'medium', count: counts.medium, color: '#f59e0b' },
-    { label: 'Low', key: 'low', count: counts.low, color: '#10b981' },
-    { label: 'Info', key: 'info', count: counts.info, color: '#3b82f6' },
+    { label: 'High', key: 'high', count: counts.high, color: '#F29F67' },
+    { label: 'Medium', key: 'medium', count: counts.medium, color: '#E0B50F' },
+    { label: 'Low', key: 'low', count: counts.low, color: '#34B1AA' },
+    { label: 'Info', key: 'info', count: counts.info, color: '#3B8FF3' },
   ].filter((s) => s.count > 0);
 
-  const displaySlices = slices.length > 0 ? slices : [{ label: 'Normal', key: 'low', count: 1, color: '#10b981' }];
+  const displaySlices = slices.length > 0 ? slices : [{ label: 'Normal', key: 'low', count: 1, color: '#34B1AA' }];
   const displayTotal = slices.length > 0 ? total : 1;
 
   let accumulatedAngle = 0;
@@ -107,7 +107,7 @@ export const SeverityDonutChart: React.FC<SeverityDonutChartProps> = ({ events }
                   d={slice.pathData}
                   fill={slice.color}
                   opacity={hoveredSlice && !isHovered ? 0.45 : 1}
-                  stroke="#080e1a"
+                  stroke="#1E1E2C"
                   strokeWidth="2"
                   style={{
                     cursor: 'pointer',
@@ -121,7 +121,7 @@ export const SeverityDonutChart: React.FC<SeverityDonutChartProps> = ({ events }
               );
             })}
 
-            <circle cx={cx} cy={cy} r={innerRadius - 4} fill="#091224" />
+            <circle cx={cx} cy={cy} r={innerRadius - 4} fill="#1E1E2C" />
             <text x={cx} y={cy - 2} textAnchor="middle" fill="#f1f5f9" className="donut-center-number">
               {hoveredSlice
                 ? arcPaths.find((s) => s.key === hoveredSlice)?.count

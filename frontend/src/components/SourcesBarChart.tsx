@@ -19,18 +19,18 @@ export const SourcesBarChart: React.FC<SourcesBarChartProps> = ({ events }) => {
   const getSourceMeta = (src: string) => {
     switch (src) {
       case 'firewall':
-        return { name: 'Firewall Perimeter', icon: HardDrive, color: '#3b82f6', format: 'CEF / Key-Value' };
+        return { name: 'Firewall Perimeter', icon: HardDrive, color: '#3B8FF3', format: 'CEF / Key-Value' };
       case 'linux':
-        return { name: 'Linux Syslog', icon: Terminal, color: '#10b981', format: 'RFC3164 Syslog' };
+        return { name: 'Linux Syslog', icon: Terminal, color: '#34B1AA', format: 'RFC3164 Syslog' };
       case 'api':
-        return { name: 'API Gateway / Cloud', icon: Cloud, color: '#8b5cf6', format: 'JSON / REST' };
+        return { name: 'API Gateway / Cloud', icon: Cloud, color: '#F29F67', format: 'JSON / REST' };
       case 'palo alto':
       case 'paloalto':
-        return { name: 'Palo Alto Networks', icon: Server, color: '#f59e0b', format: 'CEF Log' };
+        return { name: 'Palo Alto Networks', icon: Server, color: '#E0B50F', format: 'CEF Log' };
       case 'qradar':
-        return { name: 'IBM QRadar SIEM', icon: Globe, color: '#06b6d4', format: 'LEEF Payload' };
+        return { name: 'IBM QRadar SIEM', icon: Globe, color: '#34B1AA', format: 'LEEF Payload' };
       default:
-        return { name: src.toUpperCase(), icon: Server, color: '#64748b', format: 'Generic Log' };
+        return { name: src.toUpperCase(), icon: Server, color: '#A0A5B5', format: 'Generic Log' };
     }
   };
 

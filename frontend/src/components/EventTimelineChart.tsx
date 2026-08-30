@@ -83,21 +83,21 @@ export const EventTimelineChart: React.FC<EventTimelineChartProps> = ({ events }
         >
           <defs>
             <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.45" />
-              <stop offset="60%" stopColor="#8b5cf6" stopOpacity="0.15" />
-              <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.0" />
+              <stop offset="0%" stopColor="#F29F67" stopOpacity="0.4" />
+              <stop offset="60%" stopColor="#F29F67" stopOpacity="0.1" />
+              <stop offset="100%" stopColor="#F29F67" stopOpacity="0.0" />
             </linearGradient>
             <linearGradient id="strokeGradient" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="#06b6d4" />
-              <stop offset="50%" stopColor="#3b82f6" />
+              <stop offset="0%" stopColor="#34B1AA" />
+              <stop offset="50%" stopColor="#F29F67" />
               <stop offset="100%" stopColor="#ef4444" />
             </linearGradient>
           </defs>
 
           {/* Grid lines */}
-          <line x1={paddingX} y1={getY(25)} x2={width - paddingX} y2={getY(25)} stroke="rgba(56, 117, 219, 0.15)" strokeDasharray="4 4" />
-          <line x1={paddingX} y1={getY(50)} x2={width - paddingX} y2={getY(50)} stroke="rgba(56, 117, 219, 0.15)" strokeDasharray="4 4" />
-          <line x1={paddingX} y1={getY(75)} x2={width - paddingX} y2={getY(75)} stroke="rgba(56, 117, 219, 0.15)" strokeDasharray="4 4" />
+          <line x1={paddingX} y1={getY(25)} x2={width - paddingX} y2={getY(25)} stroke="rgba(255, 255, 255, 0.07)" strokeDasharray="4 4" />
+          <line x1={paddingX} y1={getY(50)} x2={width - paddingX} y2={getY(50)} stroke="rgba(255, 255, 255, 0.07)" strokeDasharray="4 4" />
+          <line x1={paddingX} y1={getY(75)} x2={width - paddingX} y2={getY(75)} stroke="rgba(255, 255, 255, 0.07)" strokeDasharray="4 4" />
 
           {/* Area fill */}
           {points.length > 0 && (
@@ -120,7 +120,7 @@ export const EventTimelineChart: React.FC<EventTimelineChartProps> = ({ events }
             const cx = getX(idx);
             const cy = getY(pt.threatScore);
             const isHovered = hoveredIndex === idx;
-            const ptColor = pt.threatScore > 70 ? '#ef4444' : pt.threatScore > 40 ? '#f59e0b' : '#10b981';
+            const ptColor = pt.threatScore > 70 ? '#ef4444' : pt.threatScore > 40 ? '#E0B50F' : '#34B1AA';
 
             return (
               <g key={idx}>
@@ -130,7 +130,7 @@ export const EventTimelineChart: React.FC<EventTimelineChartProps> = ({ events }
                     y1={paddingY}
                     x2={cx}
                     y2={height - paddingY}
-                    stroke="rgba(56, 189, 248, 0.5)"
+                    stroke="rgba(242, 159, 103, 0.6)"
                     strokeWidth="1.5"
                     strokeDasharray="3 3"
                   />
@@ -140,7 +140,7 @@ export const EventTimelineChart: React.FC<EventTimelineChartProps> = ({ events }
                   cy={cy}
                   r={isHovered ? 7 : 4.5}
                   fill={ptColor}
-                  stroke="#080e1a"
+                  stroke="#1E1E2C"
                   strokeWidth="2"
                   style={{ cursor: 'pointer', transition: 'r 0.15s ease' }}
                   onMouseEnter={() => setHoveredIndex(idx)}
