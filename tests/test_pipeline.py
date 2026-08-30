@@ -5,6 +5,7 @@ from app.detector.format_detector import detect_format
 from app.enrichment.geoip import enrich_geoip
 from app.enrichment.threat_intel import enrich_threat_intel
 from app.main import app, process_log_file
+from app.ml.anomaly_model import score_event_anomaly
 from app.normalizer.normalizer import normalize_event
 from app.parser.cef_parser import parse_cef
 from app.parser.json_parser import parse_json
@@ -128,3 +129,23 @@ def test_summary_endpoint_reports_key_security_metrics():
     assert 'high_severity' in payload
     assert 'suspicious_ips' in payload
     assert 'blocked_events' in payload
+
+
+def test_ml_anomaly_model_scores_suspicious_activity():
+    event = {
+        'event': {'severity': 'critical', 'action': 'deny'},
+        'network': {'source_ip': '1.2.3.4'},
+        'threat': {'reputation': 'suspicious'},
+        'enrichment': {'country': 'CN'}
+    }
+    score = score_event_anomaly(event)
+    assert 0.5 <= score <= 1.0
+
+
+def test_ml_insights_endpoint_returns_model_outputs():
+    client = TestClient(app)
+    response = client.get('/api/ml/insights')
+    assert response.status_code == 200
+    payload = response.json()
+    assert 'anomaly_score' in payload
+    assert 'threat_label' in payload

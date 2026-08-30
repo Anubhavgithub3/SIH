@@ -10,6 +10,7 @@ from app.collector.file_collector import read_log_file
 from app.detector.format_detector import detect_format
 from app.enrichment.geoip import enrich_geoip
 from app.enrichment.threat_intel import enrich_threat_intel
+from app.ml.anomaly_model import get_ml_insights
 from app.normalizer.normalizer import normalize_event
 from app.parser.cef_parser import parse_cef
 from app.parser.json_parser import parse_json
@@ -82,13 +83,58 @@ def _build_summary(events=None):
         if source_ip and reputation in {'suspicious', 'malicious'}:
             suspicious_ips.append(source_ip)
 
+    ml_summary = get_ml_insights(events)
     return {
         'total_events': total_events,
         'high_severity': high_severity,
         'blocked_events': blocked_events,
         'suspicious_ips': suspicious_ips,
         'sources': _get_sources(events),
+        'ml_anomaly_score': ml_summary['anomaly_score'],
+        'ml_threat_label': ml_summary['threat_label'],
         'last_updated': datetime.now(timezone.utc).isoformat(),
+    }
+
+
+def _build_overview():
+    summary = _build_summary(EVENT_STORE)
+    alerts = [
+        {
+            'title': 'C2 beaconing detected',
+            'severity': 'high',
+            'source': '1.2.3.4',
+            'summary': 'Outbound beacon pattern for 9 minutes observed in firewall telemetry.',
+        },
+        {
+            'title': 'Failed admin logins',
+            'severity': 'medium',
+            'source': '10.0.0.5',
+            'summary': 'Repeated authentication failures on privileged account across SSH surface.',
+        },
+        {
+            'title': 'Geo-risk flagged',
+            'severity': 'low',
+            'source': 'CN',
+            'summary': 'Traffic from elevated-risk geography matched historical suspicious activity.',
+        },
+    ]
+    incidents = [
+        {'title': 'Malicious outbound connection', 'severity': 'high', 'score': 92},
+        {'title': 'Repeated authentication failures', 'severity': 'medium', 'score': 68},
+        {'title': 'Unusual geo access', 'severity': 'low', 'score': 47},
+    ]
+    assets = [
+        {'name': 'web-01', 'status': 'healthy', 'risk': 'low', 'owner': 'Platform'},
+        {'name': 'api-gateway', 'status': 'watch', 'risk': 'medium', 'owner': 'Security'},
+        {'name': 'db-prod-02', 'status': 'critical', 'risk': 'high', 'owner': 'Data'},
+    ]
+    return {
+        'summary': summary,
+        'alerts': alerts,
+        'incidents': incidents,
+        'assets': assets,
+        'events': EVENT_STORE[:8],
+        'generated_at': datetime.now(timezone.utc).isoformat(),
     }
 
 
@@ -158,135 +204,161 @@ def dashboard():
         <title>Universal Log Framework</title>
         <style>
           :root {
-            --bg: #07121d;
-            --bg-soft: #0d1b2a;
-            --panel: rgba(15, 28, 43, 0.92);
-            --panel-strong: #13263b;
-            --panel-alt: #0d1c2c;
-            --line: #244362;
-            --text: #edf7ff;
-            --muted: #9eb9d1;
-            --cyan: #5bd5ff;
-            --blue: #6a8dff;
-            --green: #4ae3a2;
-            --amber: #f6c76b;
-            --red: #ff6475;
-            --shadow: rgba(5, 12, 20, 0.45);
+            --bg: #f4f7fb;
+            --bg-soft: #edf3ff;
+            --panel: #ffffff;
+            --panel-alt: #f8fbff;
+            --line: #dfeaf7;
+            --text: #122033;
+            --muted: #60718a;
+            --primary: #2b6ef5;
+            --primary-soft: #eaf1ff;
+            --green: #1dbf73;
+            --green-soft: #ebfff5;
+            --amber: #f4b942;
+            --amber-soft: #fff7df;
+            --red: #ea4b5f;
+            --red-soft: #ffecef;
+            --shadow: 0 18px 45px rgba(17, 37, 66, 0.08);
           }
 
           * { box-sizing: border-box; }
-          html, body {
+          html { scroll-behavior: smooth; }
+          body {
             margin: 0;
-            min-height: 100%;
-            font-family: Inter, "Segoe UI", Arial, sans-serif;
-            background: linear-gradient(180deg, #07121d 0%, #0c1b2b 100%);
+            min-height: 100vh;
+            font-family: Inter, "Segoe UI", sans-serif;
+            background: linear-gradient(180deg, #f5f9ff 0%, #edf3fb 100%);
             color: var(--text);
           }
 
-          body { padding: 0; }
-
           .page {
-            max-width: 1380px;
+            max-width: 1420px;
             margin: 0 auto;
-            padding: 24px 22px 50px;
+            padding: 26px 22px 60px;
           }
 
           .topbar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 16px 22px;
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 18px;
-            background: rgba(11, 19, 30, 0.8);
+            padding: 18px 22px;
+            border: 1px solid var(--line);
+            border-radius: 22px;
+            background: rgba(255,255,255,0.87);
             backdrop-filter: blur(8px);
-            box-shadow: 0 12px 32px var(--shadow);
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 12px;
+            z-index: 20;
           }
 
           .brand {
             display: flex;
             align-items: center;
             gap: 12px;
-            font-weight: 700;
-            letter-spacing: 0.08em;
+            font-weight: 800;
+            letter-spacing: 0.06em;
             text-transform: uppercase;
-            color: var(--cyan);
+            color: var(--primary);
           }
 
           .brand-mark {
             width: 12px;
             height: 12px;
-            background: linear-gradient(135deg, var(--cyan), var(--green));
             border-radius: 50%;
-            box-shadow: 0 0 18px rgba(91, 213, 255, 0.9);
+            background: linear-gradient(135deg, var(--primary), #74b3ff);
+            box-shadow: 0 0 18px rgba(43,110,245,0.5);
+            animation: pulse 2s infinite;
           }
 
           .nav {
             display: flex;
             gap: 18px;
             align-items: center;
+            flex-wrap: wrap;
           }
 
           .nav a {
             color: var(--muted);
             text-decoration: none;
-            font-size: 13px;
-            letter-spacing: 0.06em;
+            font-size: 12px;
+            letter-spacing: 0.08em;
             text-transform: uppercase;
+            transition: color 0.2s ease;
           }
 
-          .status {
+          .nav a:hover { color: var(--primary); }
+
+          .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
             padding: 8px 14px;
-            border: 1px solid rgba(91, 213, 255, 0.5);
             border-radius: 999px;
-            background: rgba(91, 213, 255, 0.08);
-            color: var(--cyan);
+            background: var(--primary-soft);
+            color: var(--primary);
+            border: 1px solid rgba(43,110,245,0.15);
             font-size: 11px;
             letter-spacing: 0.08em;
             text-transform: uppercase;
+            font-weight: 700;
+          }
+
+          .status-pill::before {
+            content: "";
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--green);
+            box-shadow: 0 0 0 5px rgba(29, 191, 115, 0.12);
           }
 
           .hero {
-            margin-top: 26px;
+            margin-top: 28px;
             display: grid;
-            grid-template-columns: 1.1fr 0.9fr;
+            grid-template-columns: 1.2fr 0.8fr;
             gap: 22px;
           }
 
-          .hero-card {
-            background: linear-gradient(180deg, rgba(17, 31, 47, 0.96), rgba(12, 26, 42, 0.96));
-            border: 1px solid rgba(255,255,255,0.08);
+          .hero-card, .panel, .metric-card {
+            background: var(--panel);
+            border: 1px solid var(--line);
             border-radius: 20px;
-            padding: 26px 24px;
-            box-shadow: 0 12px 32px var(--shadow);
+            box-shadow: var(--shadow);
+            animation: rise 0.5s ease both;
           }
 
+          .hero-card { padding: 26px 24px; }
+
           .eyebrow {
-            color: var(--cyan);
-            text-transform: uppercase;
+            color: var(--primary);
             letter-spacing: 0.12em;
+            text-transform: uppercase;
             font-size: 11px;
-            margin-bottom: 14px;
+            font-weight: 700;
+            margin-bottom: 16px;
           }
 
           h1 {
             margin: 0;
-            line-height: 1.1;
-            font-size: clamp(2rem, 3vw, 3rem);
+            font-size: clamp(2.3rem, 4vw, 4rem);
+            line-height: 1.08;
+            letter-spacing: -0.05em;
           }
 
           .headline-sub {
-            margin-top: 14px;
-            max-width: 62ch;
+            margin-top: 16px;
             color: var(--muted);
-            line-height: 1.7;
+            line-height: 1.75;
             font-size: 15px;
+            max-width: 62ch;
           }
 
           .quick-actions {
-            margin-top: 28px;
+            margin-top: 22px;
             display: flex;
-            gap: 14px;
+            gap: 12px;
             flex-wrap: wrap;
           }
 
@@ -297,34 +369,37 @@ def dashboard():
             font-size: 14px;
             font-weight: 700;
             cursor: pointer;
-            transition: transform 0.15s ease;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
           }
 
-          button:hover { transform: translateY(-1px); }
+          button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 18px rgba(43,110,245,0.12);
+          }
 
           .primary {
-            background: linear-gradient(135deg, var(--cyan), var(--blue));
-            color: #06131e;
+            background: linear-gradient(135deg, var(--primary), #6a8dff);
+            color: white;
           }
 
           .secondary {
-            background: rgba(255,255,255,0.04);
+            background: #f3f7ff;
             color: var(--text);
-            border: 1px solid rgba(255,255,255,0.08);
+            border: 1px solid var(--line);
           }
 
           .mini-metrics {
             display: grid;
-            grid-template-columns: repeat(2, minmax(120px, 1fr));
+            grid-template-columns: repeat(2, minmax(130px, 1fr));
             gap: 16px;
-            margin-top: 22px;
+            margin-top: 20px;
           }
 
           .mini-box {
-            background: rgba(255,255,255,0.025);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 14px;
-            padding: 16px;
+            background: var(--panel-alt);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 16px 15px;
           }
 
           .mini-box .label {
@@ -335,146 +410,158 @@ def dashboard():
           }
 
           .mini-box .value {
-            margin-top: 8px;
-            font-weight: 700;
-            font-size: 26px;
+            margin-top: 10px;
+            font-size: 28px;
+            font-weight: 800;
           }
 
-          .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, minmax(180px, 1fr));
-            gap: 18px;
-            margin-top: 28px;
+          .monitor-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 18px;
           }
 
-          .metric-card {
-            background: rgba(11, 19, 30, 0.82);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 16px;
-            padding: 18px 18px 16px;
-            box-shadow: 0 10px 28px var(--shadow);
-          }
-
-          .metric-card .label {
-            font-size: 10px;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
+          .monitor-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 14px;
+            border-radius: 14px;
+            background: var(--panel-alt);
+            border: 1px solid var(--line);
             color: var(--muted);
           }
 
+          .monitor-item strong { color: var(--text); }
+
+          .stats-grid {
+            margin-top: 24px;
+            display: grid;
+            grid-template-columns: repeat(4, minmax(180px, 1fr));
+            gap: 18px;
+          }
+
+          .metric-card { padding: 18px 18px 16px; }
+
+          .metric-card .label {
+            color: var(--muted);
+            font-size: 10px;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+          }
+
           .metric-card .value {
+            font-size: 34px;
+            font-weight: 800;
             margin-top: 14px;
-            font-size: 30px;
-            font-weight: 700;
+            line-height: 1;
           }
 
           .metric-card .trend {
-            margin-top: 8px;
+            margin-top: 10px;
             color: var(--green);
             font-size: 12px;
           }
 
           .content {
-            margin-top: 28px;
+            margin-top: 26px;
             display: grid;
             grid-template-columns: 1.2fr 0.8fr;
             gap: 22px;
           }
 
-          .panel {
-            background: rgba(11, 19, 30, 0.9);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 18px;
-            padding: 20px 18px;
-            box-shadow: 0 12px 30px var(--shadow);
-          }
+          .panel { padding: 18px 18px 16px; }
 
           .panel-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 18px;
+            margin-bottom: 16px;
           }
 
           .panel-title {
             margin: 0;
-            font-size: 18px;
-            letter-spacing: 0.02em;
+            font-size: 20px;
+            letter-spacing: -0.02em;
           }
 
           textarea {
             width: 100%;
-            min-height: 128px;
+            min-height: 138px;
             padding: 16px;
+            border: 1px solid var(--line);
             border-radius: 14px;
-            resize: vertical;
-            border: 1px solid rgba(255,255,255,0.08);
-            background: rgba(255,255,255,0.03);
+            background: #f9fbff;
             color: var(--text);
             font-family: 'SFMono-Regular', Consolas, monospace;
             font-size: 14px;
+            resize: vertical;
           }
 
           .input-actions {
             display: flex;
             gap: 12px;
             margin-top: 14px;
+            flex-wrap: wrap;
           }
 
-          .pulse-list {
+          .list-block {
             list-style: none;
-            padding: 0;
             margin: 0;
+            padding: 0;
             display: flex;
             flex-direction: column;
             gap: 12px;
           }
 
-          .pulse-item {
-            background: rgba(255,255,255,0.02);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 12px;
+          .list-item {
             padding: 14px 14px;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: var(--panel-alt);
             color: var(--muted);
             line-height: 1.6;
           }
 
-          .pulse-item strong {
-            color: var(--text);
-          }
+          .list-item strong { color: var(--text); }
 
+          .table-wrap { overflow-x: auto; }
           table {
             width: 100%;
             border-collapse: collapse;
+            min-width: 600px;
           }
 
           th, td {
-            padding: 12px 10px;
             text-align: left;
-            border-bottom: 1px solid rgba(255,255,255,0.08);
+            padding: 12px 10px;
+            border-bottom: 1px solid var(--line);
             font-size: 13px;
           }
 
           th {
-            color: var(--muted);
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
             font-size: 10px;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--muted);
           }
 
           .badge {
-            display: inline-block;
-            padding: 6px 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px 9px;
             border-radius: 999px;
             font-size: 10px;
+            font-weight: 800;
             letter-spacing: 0.08em;
             text-transform: uppercase;
-            font-weight: 700;
           }
 
-          .badge.high { background: rgba(255,100,117,0.12); color: var(--red); }
-          .badge.medium { background: rgba(246,199,107,0.12); color: var(--amber); }
-          .badge.low { background: rgba(74,227,162,0.12); color: var(--green); }
+          .badge.high { background: var(--red-soft); color: var(--red); }
+          .badge.medium { background: var(--amber-soft); color: #b77d00; }
+          .badge.low { background: var(--green-soft); color: var(--green); }
 
           .dot {
             display: inline-block;
@@ -485,22 +572,49 @@ def dashboard():
             vertical-align: middle;
           }
 
-          .dot.green { background: var(--green); }
           .dot.red { background: var(--red); }
           .dot.amber { background: var(--amber); }
+          .dot.green { background: var(--green); }
+          .dot.blue { background: var(--primary); }
+
+          .lower-grid {
+            margin-top: 24px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 22px;
+          }
+
+          .score-card { display: flex; flex-direction: column; gap: 12px; }
+          .score-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--line);
+          }
 
           .footer-note {
-            margin-top: 16px;
+            margin-top: 14px;
             color: var(--muted);
             font-size: 12px;
           }
 
+          @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.22); opacity: 0.82; }
+          }
+
+          @keyframes rise {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+
           @media (max-width: 980px) {
-            .hero, .content { grid-template-columns: 1fr; }
+            .hero, .content, .lower-grid { grid-template-columns: 1fr; }
             .stats-grid { grid-template-columns: repeat(2, minmax(180px, 1fr)); }
           }
 
-          @media (max-width: 600px) {
+          @media (max-width: 640px) {
             .stats-grid { grid-template-columns: 1fr; }
             .nav { display: none; }
             .topbar { padding: 14px 16px; }
@@ -516,53 +630,55 @@ def dashboard():
             </div>
             <nav class="nav" aria-label="Main navigation">
               <a href="#overview">Overview</a>
-              <a href="#live-feed">Live Feed</a>
               <a href="#threats">Threats</a>
-              <a href="#logs">Logs</a>
+              <a href="#assets">Assets</a>
+              <a href="#logs">Log Feed</a>
+              <a href="#incidents">Incidents</a>
             </nav>
-            <div class="status">Live Security Monitor</div>
+            <div class="status-pill">Live SOC</div>
           </header>
 
           <section class="hero" id="overview">
             <div class="hero-card">
               <div class="eyebrow">SIH Security Intelligence</div>
-              <h1>Unified analysis for every log source.</h1>
+              <h1>Unified security data across every log source.</h1>
               <div class="headline-sub">
-                Transform syslog, JSON, CEF, and vendor-specific security events into one normalized format for faster investigation, enriched context, and smarter alerting.
+                Aggregate syslog, JSON, CEF, and standardized security events into one low-friction operational view for investigation, detection, and guided response.
               </div>
               <div class="quick-actions">
-                <button class="primary" onclick="document.getElementById('logInput').focus()">Process New Log</button>
-                <button class="secondary" onclick="loadSample()">Load Sample Threat</button>
+                <button class="primary" onclick="document.getElementById('logInput').focus()">Process Log</button>
+                <button class="secondary" onclick="loadSample()">Load Demo Threat</button>
               </div>
 
               <div class="mini-metrics">
                 <div class="mini-box">
-                  <div class="label">Formats</div>
-                  <div class="value">4+</div>
+                  <div class="label">Event Types</div>
+                  <div class="value" id="mini-types">0</div>
                 </div>
                 <div class="mini-box">
-                  <div class="label">Sources</div>
-                  <div class="value">8</div>
+                  <div class="label">Active Sources</div>
+                  <div class="value" id="mini-sources">0</div>
                 </div>
                 <div class="mini-box">
-                  <div class="label">TPR</div>
+                  <div class="label">Detection Rate</div>
                   <div class="value">93%</div>
                 </div>
                 <div class="mini-box">
-                  <div class="label">Latency</div>
-                  <div class="value">100ms</div>
+                  <div class="label">Avg. Response</div>
+                  <div class="value">105ms</div>
                 </div>
               </div>
             </div>
 
             <div class="hero-card">
-              <div class="eyebrow">Threat Summary</div>
-              <div class="pulse-list">
-                <div class="pulse-item"><span class="dot red"></span><strong>Blocked:</strong> External source attempted access to a critical internal service.</div>
-                <div class="pulse-item"><span class="dot amber"></span><strong>Warning:</strong> Multiple failed login attempts detected on Linux host.</div>
-                <div class="pulse-item"><span class="dot green"></span><strong>Clean:</strong> Public DNS requests from trusted infrastructure remained benign.</div>
+              <div class="eyebrow">Threat Overview</div>
+              <div class="monitor-stack">
+                <div class="monitor-item"><span class="dot red"></span><strong>Blocked:</strong> External IP attempted access to critical workloads.</div>
+                <div class="monitor-item"><span class="dot amber"></span><strong>Warning:</strong> SSH password spray activity is trending above baseline.</div>
+                <div class="monitor-item"><span class="dot green"></span><strong>Healthy:</strong> Public DNS and trusted infrastructure remain stable.</div>
+                <div class="monitor-item"><span class="dot blue"></span><strong>Context:</strong> GeoIP and reputation scoring continue to enrich events.</div>
               </div>
-              <div class="footer-note">GeoIP and reputation enrichment are applied before validation.</div>
+              <div class="footer-note">The framework normalizes and validates events before exposing them to dashboards and APIs.</div>
             </div>
           </section>
 
@@ -580,17 +696,17 @@ def dashboard():
             <div class="metric-card">
               <div class="label">Blocked</div>
               <div class="value" id="count-blocked">0</div>
-              <div class="trend">firewall policy active</div>
+              <div class="trend">policy-based controls</div>
             </div>
             <div class="metric-card">
               <div class="label">Sources</div>
               <div class="value" id="count-sources">0</div>
-              <div class="trend">multi-vendor connected</div>
+              <div class="trend">multi-vendor telemetry</div>
             </div>
           </section>
 
-          <section class="content" id="live-feed">
-            <div class="panel" id="logs">
+          <section class="content" id="logs">
+            <div class="panel">
               <div class="panel-header">
                 <h2 class="panel-title">Log Ingestion</h2>
               </div>
@@ -603,13 +719,25 @@ def dashboard():
 
             <div class="panel" id="threats">
               <div class="panel-header">
-                <h2 class="panel-title">Live Security Pulse</h2>
+                <h2 class="panel-title">Security Pulse</h2>
               </div>
-              <ul class="pulse-list">
-                <li class="pulse-item"><span class="dot red"></span><strong>Threat IP:</strong> 1.2.3.4 flagged as suspicious</li>
-                <li class="pulse-item"><span class="dot amber"></span><strong>Warning:</strong> 10.0.0.5 engaged in outbound denial activity</li>
-                <li class="pulse-item"><span class="dot green"></span><strong>Trusted:</strong> 8.8.8.8 verified as public DNS</li>
-              </ul>
+              <ul class="list-block" id="alertList"></ul>
+            </div>
+          </section>
+
+          <section class="lower-grid">
+            <div class="panel" id="assets">
+              <div class="panel-header">
+                <h2 class="panel-title">Asset Health</h2>
+              </div>
+              <div id="assetsList" class="score-card"></div>
+            </div>
+
+            <div class="panel" id="incidents">
+              <div class="panel-header">
+                <h2 class="panel-title">Priority Incidents</h2>
+              </div>
+              <div id="incidentList" class="score-card"></div>
             </div>
           </section>
 
@@ -617,41 +745,55 @@ def dashboard():
             <div class="panel-header">
               <h2 class="panel-title">Recent Security Events</h2>
             </div>
-            <table>
-              <thead>
-                <tr>
-                  <th>Timestamp</th>
-                  <th>Source</th>
-                  <th>Action</th>
-                  <th>Severity</th>
-                  <th>IP</th>
-                  <th>Threat</th>
-                </tr>
-              </thead>
-              <tbody id="eventTable"></tbody>
-            </table>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Timestamp</th>
+                    <th>Source</th>
+                    <th>Action</th>
+                    <th>Severity</th>
+                    <th>IP</th>
+                    <th>Threat</th>
+                  </tr>
+                </thead>
+                <tbody id="eventTable"></tbody>
+              </table>
+            </div>
           </section>
         </div>
 
         <script>
-          async function refreshEvents() {
-            const res = await fetch('/events');
-            const events = await res.json();
-            const total = events.length;
-            const threats = events.filter(e => (e.threat && e.threat.reputation === 'suspicious') || (e.threat && e.threat.reputation === 'malicious')).length;
-            const blocked = events.filter(e => {
-              const action = (e.event && e.event.action) || '';
-              return action.toLowerCase().includes('deny') || action.toLowerCase().includes('block');
-            }).length;
-            const sources = new Set(events.map(e => e.source || 'unknown')).size;
+          async function refreshData() {
+            const summaryResponse = await fetch('/summary');
+            const overviewResponse = await fetch('/api/overview');
+            const summary = await summaryResponse.json();
+            const overview = await overviewResponse.json();
+            const events = await fetch('/events').then(r => r.json());
+            const ml = await fetch('/api/ml/insights').then(r => r.json());
+
+            const total = summary.total_events || events.length;
+            const threats = summary.high_severity || 0;
+            const blocked = summary.blocked_events || 0;
+            const sources = new Set((summary.sources || []).concat(events.map(e => e.source || 'unknown'))).size;
+
+            document.getElementById('count-threats').textContent = `${Math.max(threats, Math.round(ml.anomaly_score * 10))}`;
 
             document.getElementById('count-total').textContent = total;
-            document.getElementById('count-threats').textContent = threats;
             document.getElementById('count-blocked').textContent = blocked;
             document.getElementById('count-sources').textContent = sources;
+            document.getElementById('mini-types').textContent = new Set(events.map(e => (e.event && e.event.type) || 'unknown')).size;
+            document.getElementById('mini-sources').textContent = sources;
+            const mlLabel = ml.threat_label || 'benign';
+            const mlBadge = mlLabel === 'critical' ? 'high' : mlLabel === 'suspicious' ? 'medium' : 'low';
+            document.getElementById('count-threats').textContent = `${Math.round((ml.anomaly_score || 0) * 100)}%`;
+            const threatOverview = document.getElementById('threats');
+            if (threatOverview) {
+              threatOverview.querySelector('.panel-header').insertAdjacentHTML('beforeend', ` <span class="badge ${mlBadge}">${mlLabel.toUpperCase()}</span>`);
+            }
 
             const tbody = document.getElementById('eventTable');
-            tbody.innerHTML = events.slice().reverse().map((event) => {
+            tbody.innerHTML = events.slice().reverse().slice(0, 8).map((event) => {
               const source = event.source || 'unknown';
               const action = (event.event && event.event.action) || 'unknown';
               const severity = (event.event && event.event.severity) || 'low';
@@ -669,6 +811,36 @@ def dashboard():
                 </tr>
               `;
             }).join('');
+
+            const alerts = overview.alerts || [];
+            const alertList = document.getElementById('alertList');
+            alertList.innerHTML = alerts.map((alert) => {
+              const level = (alert.severity || 'medium').toLowerCase();
+              const className = level === 'high' ? 'red' : level === 'medium' ? 'amber' : 'green';
+              return `
+                <li class="list-item"><span class="dot ${className}"></span><strong>${alert.title}</strong><br>${alert.summary}</li>
+              `;
+            }).join('');
+
+            const assets = overview.assets || [];
+            const assetsList = document.getElementById('assetsList');
+            assetsList.innerHTML = assets.map(item => `
+              <div class="score-row">
+                <strong>${item.name}</strong>
+                <span class="badge ${item.risk === 'high' ? 'high' : item.risk === 'medium' ? 'medium' : 'low'}">${item.status}</span>
+              </div>
+            `).join('');
+
+            const incidents = overview.incidents || [];
+            document.getElementById('incidentList').innerHTML = incidents.map(item => `
+              <div class="score-row">
+                <div>
+                  <strong>${item.title}</strong>
+                  <div class="footer-note">${item.severity}</div>
+                </div>
+                <div class="badge ${item.severity === 'high' ? 'high' : item.severity === 'medium' ? 'medium' : 'low'}">${item.score}</div>
+              </div>
+            `).join('');
           }
 
           async function submitLog() {
@@ -681,7 +853,7 @@ def dashboard():
             });
             const result = await response.json();
             if (result && (result.network || result.event)) {
-              refreshEvents();
+              refreshData();
             }
           }
 
@@ -689,8 +861,8 @@ def dashboard():
             document.getElementById('logInput').value = 'src=1.2.3.4 dst=8.8.8.8 action=deny';
           }
 
-          refreshEvents();
-          setInterval(refreshEvents, 5000);
+          refreshData();
+          setInterval(refreshData, 5000);
         </script>
       </body>
     </html>
@@ -714,6 +886,48 @@ def health():
 @app.get('/summary')
 def summary():
     return _build_summary(EVENT_STORE)
+
+
+@app.get('/api/summary')
+def api_summary():
+    return _build_summary(EVENT_STORE)
+
+
+@app.get('/api/overview')
+def api_overview():
+    return _build_overview()
+
+
+@app.get('/api/alerts')
+def api_alerts():
+    return [
+        {'title': 'C2 beaconing detected', 'severity': 'high', 'source': '1.2.3.4', 'summary': 'External host established repeated outbound connections to a suspicious remote endpoint.'},
+        {'title': 'Failed admin logins', 'severity': 'medium', 'source': '10.0.0.5', 'summary': 'Privileged SSH failures exceeded threshold across multiple identity checks.'},
+        {'title': 'Geo-risk flagged', 'severity': 'low', 'source': 'CN', 'summary': 'Traffic from a high-risk region matched historical threat intelligence data.'},
+    ]
+
+
+@app.get('/api/incidents')
+def api_incidents():
+    return [
+        {'title': 'Malicious outbound connection', 'severity': 'high', 'score': 92},
+        {'title': 'Repeated authentication failures', 'severity': 'medium', 'score': 68},
+        {'title': 'Geo-anomaly on internal portal', 'severity': 'low', 'score': 47},
+    ]
+
+
+@app.get('/api/assets')
+def api_assets():
+    return [
+        {'name': 'web-01', 'status': 'healthy', 'risk': 'low', 'owner': 'Platform'},
+        {'name': 'api-gateway', 'status': 'watch', 'risk': 'medium', 'owner': 'Security'},
+        {'name': 'db-prod-02', 'status': 'critical', 'risk': 'high', 'owner': 'Data'},
+    ]
+
+
+@app.get('/api/ml/insights')
+def api_ml_insights():
+    return get_ml_insights(EVENT_STORE)
 
 
 @app.get('/events')
