@@ -9,6 +9,7 @@ import type {
   AlertItem,
   IncidentItem,
   AssetItem,
+  ThemeMode,
 } from './types';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
@@ -29,6 +30,20 @@ import { ApiDocsView } from './components/ApiDocsView';
 export function App() {
   const [currentView, setCurrentView] = useState<string>('landing');
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
+
+  // Theme State ('light' | 'dark' | 'cyber')
+  const [theme, setTheme] = useState<ThemeMode>(() => {
+    const saved = localStorage.getItem('ulf_theme');
+    if (saved === 'dark' || saved === 'cyber' || saved === 'light') {
+      return saved;
+    }
+    return 'light';
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('ulf_theme', theme);
+  }, [theme]);
 
   const [health, setHealth] = useState<HealthStatus | null>(null);
   const [summary, setSummary] = useState<SecuritySummary | null>(null);
@@ -160,7 +175,7 @@ export function App() {
   };
 
   return (
-    <div className="app-layout">
+    <div className="app-layout" data-theme={theme}>
       {/* Toast Notification */}
       {toast && (
         <div className={`toast-notification glass-panel toast-${toast.type} fade-in`}>
@@ -178,6 +193,8 @@ export function App() {
           setCollapsed={setSidebarCollapsed}
           eventCount={events.length}
           health={health}
+          theme={theme}
+          setTheme={setTheme}
         />
 
         {/* Right Main Body */}
@@ -194,6 +211,8 @@ export function App() {
             setAutoRefreshInterval={setAutoRefreshInterval}
             onClearEvents={handleClearEvents}
             eventCount={events.length}
+            theme={theme}
+            setTheme={setTheme}
           />
 
           {/* Main Content Pages */}

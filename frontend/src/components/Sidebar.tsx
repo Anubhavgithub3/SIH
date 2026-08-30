@@ -12,8 +12,11 @@ import {
   ShieldCheck,
   Server,
   Activity,
+  Sun,
+  Moon,
+  Sparkles,
 } from 'lucide-react';
-import type { HealthStatus } from '../types';
+import type { HealthStatus, ThemeMode } from '../types';
 
 interface SidebarProps {
   currentView: string;
@@ -22,6 +25,8 @@ interface SidebarProps {
   setCollapsed: (collapsed: boolean) => void;
   eventCount: number;
   health: HealthStatus | null;
+  theme: ThemeMode;
+  setTheme: (theme: ThemeMode) => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -31,6 +36,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   setCollapsed,
   eventCount,
   health,
+  theme,
+  setTheme,
 }) => {
   const isOnline = !!health;
 
@@ -53,8 +60,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className="sidebar-header">
         <div className="sidebar-brand" onClick={() => setCurrentView('landing')}>
           <div className="sidebar-brand-icon">
-            <ShieldCheck size={22} className="text-coral" />
-            <div className="brand-glow" />
+            <ShieldCheck size={20} className="text-coral" />
           </div>
           {!collapsed && (
             <div className="sidebar-brand-text">
@@ -69,14 +75,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
           className="sidebar-toggle-btn"
           title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
-          {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+          {collapsed ? <ChevronRight size={15} /> : <ChevronLeft size={15} />}
         </button>
       </div>
 
       {/* Navigation Groups */}
       <div className="sidebar-nav-wrap">
         <div className="nav-group">
-          {!collapsed && <div className="nav-group-label">TELEMETRY & OPERATIONS</div>}
+          {!collapsed && <div className="nav-group-label">OPERATIONS</div>}
           <div className="nav-items-list">
             {mainNavItems.map((item) => {
               const Icon = item.icon;
@@ -88,7 +94,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   className={`nav-item-btn ${isActive ? 'active' : ''}`}
                   title={collapsed ? item.label : undefined}
                 >
-                  <Icon size={18} className="nav-item-icon" />
+                  <Icon size={17} className="nav-item-icon" />
                   {!collapsed && (
                     <span className="nav-item-label">{item.label}</span>
                   )}
@@ -102,7 +108,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         <div className="nav-group">
-          {!collapsed && <div className="nav-group-label">DOCUMENTATION & APIS</div>}
+          {!collapsed && <div className="nav-group-label">SPECS & APIS</div>}
           <div className="nav-items-list">
             {secondaryNavItems.map((item) => {
               const Icon = item.icon;
@@ -114,7 +120,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   className={`nav-item-btn ${isActive ? 'active' : ''}`}
                   title={collapsed ? item.label : undefined}
                 >
-                  <Icon size={18} className="nav-item-icon" />
+                  <Icon size={17} className="nav-item-icon" />
                   {!collapsed && (
                     <span className="nav-item-label">{item.label}</span>
                   )}
@@ -125,29 +131,63 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
       </div>
 
-      {/* Sidebar Footer / Node Telemetry Widget */}
-      {!collapsed && (
-        <div className="sidebar-node-widget">
-          <div className="node-widget-top">
-            <div className="node-info">
-              <span className={`pulse-dot ${isOnline ? 'online' : 'critical'}`} />
-              <span className="node-title">Node: fw-edge-01</span>
+      {/* Sidebar Footer with Theme Switcher & Node Status */}
+      <div className="sidebar-bottom-section">
+        {!collapsed && (
+          <div className="sidebar-theme-row">
+            <span className="nav-group-label">APPEARANCE</span>
+            <div className="theme-switch-group">
+              <button
+                onClick={() => setTheme('light')}
+                className={`theme-switch-btn ${theme === 'light' ? 'active' : ''}`}
+                title="Light / White Mode"
+              >
+                <Sun size={12} />
+                <span>Light</span>
+              </button>
+              <button
+                onClick={() => setTheme('dark')}
+                className={`theme-switch-btn ${theme === 'dark' ? 'active' : ''}`}
+                title="Dark Mode"
+              >
+                <Moon size={12} />
+                <span>Dark</span>
+              </button>
+              <button
+                onClick={() => setTheme('cyber')}
+                className={`theme-switch-btn ${theme === 'cyber' ? 'active' : ''}`}
+                title="Color Mode"
+              >
+                <Sparkles size={12} />
+                <span>Color</span>
+              </button>
             </div>
-            <span className="node-status-text">{isOnline ? 'READY' : 'OFFLINE'}</span>
           </div>
+        )}
 
-          <div className="node-metrics-list">
-            <div className="node-metric-row">
-              <span className="metric-lbl"><Server size={12} /> ML Model:</span>
-              <span className="metric-val mono">RandomForest v1.4</span>
+        {!collapsed && (
+          <div className="sidebar-node-widget">
+            <div className="node-widget-top">
+              <div className="node-info">
+                <span className={`pulse-dot ${isOnline ? 'online' : 'critical'}`} />
+                <span className="node-title">Node: fw-edge-01</span>
+              </div>
+              <span className="node-status-text">{isOnline ? 'ONLINE' : 'OFFLINE'}</span>
             </div>
-            <div className="node-metric-row">
-              <span className="metric-lbl"><Activity size={12} /> Ingestion:</span>
-              <span className="metric-val mono">Active</span>
+
+            <div className="node-metrics-list">
+              <div className="node-metric-row">
+                <span className="metric-lbl"><Server size={11} /> ML Model:</span>
+                <span className="metric-val mono">RandomForest v1.4</span>
+              </div>
+              <div className="node-metric-row">
+                <span className="metric-lbl"><Activity size={11} /> Ingestion:</span>
+                <span className="metric-val mono">Active</span>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </aside>
   );
 };

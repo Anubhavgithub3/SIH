@@ -10,8 +10,11 @@ import {
   Radio,
   Cpu,
   BookOpen,
+  Sun,
+  Moon,
+  Sparkles,
 } from 'lucide-react';
-import type { HealthStatus } from '../types';
+import type { HealthStatus, ThemeMode } from '../types';
 
 interface HeaderProps {
   currentView: string;
@@ -24,6 +27,8 @@ interface HeaderProps {
   setAutoRefreshInterval: (sec: number) => void;
   onClearEvents: () => void;
   eventCount: number;
+  theme: ThemeMode;
+  setTheme: (theme: ThemeMode) => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -37,6 +42,8 @@ export const Header: React.FC<HeaderProps> = ({
   setAutoRefreshInterval,
   onClearEvents,
   eventCount,
+  theme,
+  setTheme,
 }) => {
   const isOnline = !!health;
 
@@ -55,8 +62,7 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="header-top">
         <div className="brand-section" onClick={() => setCurrentView('landing')} style={{ cursor: 'pointer' }}>
           <div className="brand-icon-wrapper">
-            <Shield className="brand-shield" size={24} />
-            <div className="brand-glow" />
+            <Shield className="brand-shield" size={22} />
           </div>
           <div>
             <div className="brand-title">UNIVERSAL LOG FRAMEWORK</div>
@@ -72,6 +78,34 @@ export const Header: React.FC<HeaderProps> = ({
             {latencyMs !== null && isOnline && (
               <span className="latency-text">{latencyMs}ms</span>
             )}
+          </div>
+
+          {/* Theme Mode Switcher (Light / Dark / Color) */}
+          <div className="theme-switch-group">
+            <button
+              onClick={() => setTheme('light')}
+              className={`theme-switch-btn ${theme === 'light' ? 'active' : ''}`}
+              title="White / Light Mode"
+            >
+              <Sun size={13} />
+              <span>Light</span>
+            </button>
+            <button
+              onClick={() => setTheme('dark')}
+              className={`theme-switch-btn ${theme === 'dark' ? 'active' : ''}`}
+              title="Dark Mode"
+            >
+              <Moon size={13} />
+              <span>Dark</span>
+            </button>
+            <button
+              onClick={() => setTheme('cyber')}
+              className={`theme-switch-btn ${theme === 'cyber' ? 'active' : ''}`}
+              title="Cyber / Color Mode"
+            >
+              <Sparkles size={13} />
+              <span>Color</span>
+            </button>
           </div>
 
           {/* Auto Refresh Select */}
@@ -97,7 +131,7 @@ export const Header: React.FC<HeaderProps> = ({
             title="Refresh dashboard data"
             disabled={isRefreshing}
           >
-            <RefreshCw size={14} className={isRefreshing ? 'spin' : ''} />
+            <RefreshCw size={13} className={isRefreshing ? 'spin' : ''} />
             <span>Sync</span>
           </button>
 
@@ -107,8 +141,8 @@ export const Header: React.FC<HeaderProps> = ({
             className="btn btn-danger btn-sm"
             title="Reset event buffer"
           >
-            <Trash2 size={14} />
-            <span>Reset Buffer</span>
+            <Trash2 size={13} />
+            <span>Reset</span>
           </button>
         </div>
       </div>

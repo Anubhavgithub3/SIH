@@ -140,3 +140,6 @@ export interface HealthStatus {
 export interface IngestResponse extends NormalizedEvent {
   error?: string;
 }
+
+export type ThemeMode = 'light' | 'dark' | 'cyber';
+
