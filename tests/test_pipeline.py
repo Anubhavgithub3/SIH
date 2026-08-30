@@ -149,3 +149,28 @@ def test_ml_insights_endpoint_returns_model_outputs():
     payload = response.json()
     assert 'anomaly_score' in payload
     assert 'threat_label' in payload
+
+
+def test_batch_logs_endpoint():
+    client = TestClient(app)
+    payload = {
+        'logs': [
+            'src=10.0.0.5 dst=8.8.8.8 action=deny',
+            'CEF:0|Palo Alto|PAN-OS|11.0|THREAT|C2-Beacon|8|src=1.2.3.4 msg=malware',
+        ]
+    }
+    response = client.post('/api/logs/batch', json=payload)
+    assert response.status_code == 200
+    events = response.json()
+    assert len(events) == 2
+    assert events[0]['network']['destination_ip'] == '8.8.8.8'
+
+
+def test_clear_events_endpoint():
+    client = TestClient(app)
+    response = client.post('/api/events/clear')
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload['message'] == 'Event store cleared'
+    assert isinstance(payload['count'], int)
+
