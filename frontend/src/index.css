@@ -11,8 +11,9 @@
   --primary-navy-border: #32324a;
 
   /* Supporting Colors */
-  --support-blue: #3B8FF3;
-  --support-blue-subtle: rgba(59, 143, 243, 0.15);
+  --support-blue: #56B4FF;
+  --support-blue-hover: #7ac4ff;
+  --support-blue-subtle: rgba(86, 180, 255, 0.18);
   
   --support-teal: #34B1AA;
   --support-teal-subtle: rgba(52, 177, 170, 0.15);
@@ -24,27 +25,27 @@
   --support-red-subtle: rgba(239, 68, 68, 0.15);
 
   /* Backgrounds & Surfaces */
-  --bg-main: #13131F;
-  --bg-subtle: #171726;
-  --bg-card: #1E1E2C;
-  --bg-card-hover: #262638;
-  --bg-card-solid: #1E1E2C;
-  --bg-input: #151522;
-  --bg-glass: rgba(30, 30, 44, 0.88);
+  --bg-main: #161626;
+  --bg-subtle: #1D1D30;
+  --bg-card: #232338;
+  --bg-card-hover: #2C2C45;
+  --bg-card-solid: #232338;
+  --bg-input: #19192C;
+  --bg-glass: rgba(35, 35, 56, 0.9);
   
   /* Borders */
-  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-subtle: rgba(255, 255, 255, 0.1);
   --border-active: rgba(242, 159, 103, 0.45);
-  --border-glow: rgba(242, 159, 103, 0.25);
+  --border-glow: rgba(86, 180, 255, 0.25);
 
   /* Text Typography */
   --text-primary: #F8FAFC;
-  --text-secondary: #A0A5B5;
-  --text-muted: #6E7487;
+  --text-secondary: #A4A9BA;
+  --text-muted: #72798F;
   --text-accent: #F29F67;
 
   /* Legacy mapping aliases */
-  --cyber-blue: #3B8FF3;
+  --cyber-blue: #56B4FF;
   --cyber-cyan: #34B1AA;
   --cyber-purple: #F29F67;
   --cyber-emerald: #34B1AA;

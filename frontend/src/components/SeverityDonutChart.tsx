@@ -39,7 +39,7 @@ export const SeverityDonutChart: React.FC<SeverityDonutChartProps> = ({ events }
     { label: 'High', key: 'high', count: counts.high, color: '#F29F67' },
     { label: 'Medium', key: 'medium', count: counts.medium, color: '#E0B50F' },
     { label: 'Low', key: 'low', count: counts.low, color: '#34B1AA' },
-    { label: 'Info', key: 'info', count: counts.info, color: '#3B8FF3' },
+    { label: 'Info', key: 'info', count: counts.info, color: '#56B4FF' },
   ].filter((s) => s.count > 0);
 
   const displaySlices = slices.length > 0 ? slices : [{ label: 'Normal', key: 'low', count: 1, color: '#34B1AA' }];

@@ -67,7 +67,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   const pillars = [
     {
       icon: Layers,
-      color: '#3B8FF3',
+      color: '#56B4FF',
       title: 'Heterogeneous Ingestion',
       desc: 'Ingests RFC3164 Syslog, CEF, LEEF, JSON, and Key-Value log streams with zero vendor lock-in.',
     },

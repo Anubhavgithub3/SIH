@@ -19,7 +19,7 @@ export const SourcesBarChart: React.FC<SourcesBarChartProps> = ({ events }) => {
   const getSourceMeta = (src: string) => {
     switch (src) {
       case 'firewall':
-        return { name: 'Firewall Perimeter', icon: HardDrive, color: '#3B8FF3', format: 'CEF / Key-Value' };
+        return { name: 'Firewall Perimeter', icon: HardDrive, color: '#56B4FF', format: 'CEF / Key-Value' };
       case 'linux':
         return { name: 'Linux Syslog', icon: Terminal, color: '#34B1AA', format: 'RFC3164 Syslog' };
       case 'api':
