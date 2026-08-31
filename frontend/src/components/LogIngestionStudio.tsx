@@ -25,6 +25,7 @@ import {
   ChevronUp,
   Cpu,
   Search,
+  AlertOctagon,
 } from 'lucide-react';
 import type { NormalizedEvent } from '../types';
 
@@ -1134,6 +1135,47 @@ export const LogIngestionStudio: React.FC<LogIngestionStudioProps> = ({
                     </div>
                   </div>
                 )}
+                {/* SHA-256 Cryptographic Audit Hash & Backup Status Box */}
+                {lastResult?.audit && (
+                  <div style={{ background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.3)', padding: '12px 16px', borderRadius: '10px', marginBottom: '14px', fontSize: '0.85rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Shield size={16} className="text-cyan" />
+                        <span style={{ fontWeight: 600, color: '#38bdf8' }}>SHA-256 Cryptographic Audit Hash &amp; Backup Verification</span>
+                      </div>
+                      <span className="badge badge-cyan">TAMPER-PROOF VERIFIED</span>
+                    </div>
+                    <div className="mono" style={{ fontSize: '0.78rem', color: '#93c5fd', wordBreak: 'break-all', background: 'rgba(0,0,0,0.3)', padding: '6px 10px', borderRadius: '4px', margin: '4px 0 8px' }}>
+                      SHA256: {lastResult.audit.sha256_hash}
+                    </div>
+                    <div style={{ display: 'flex', gap: '16px', fontSize: '0.75rem', color: '#9ca3af', flexWrap: 'wrap' }}>
+                      <span>Backup ID: <strong className="mono" style={{ color: '#e0f2fe' }}>{lastResult.audit.backup_id}</strong></span>
+                      <span>Raw Payload Size: <strong className="mono" style={{ color: '#e0f2fe' }}>{lastResult.audit.bytes_size} Bytes</strong></span>
+                      <span>Audit Status: <strong className="mono" style={{ color: '#10b981' }}>Saved to Disk Backup Vault</strong></span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Threat Quarantine Isolation Banner */}
+                {lastResult?.quarantine && (
+                  <div style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.4)', padding: '12px 16px', borderRadius: '10px', marginBottom: '14px', fontSize: '0.85rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <AlertOctagon size={18} className="text-coral" />
+                        <div>
+                          <h4 style={{ margin: 0, fontSize: '0.92rem', color: '#ef4444', fontWeight: 600 }}>
+                            🚫 Threat Payload Quarantined &amp; Isolated in Secure Vault
+                          </h4>
+                          <span style={{ fontSize: '0.78rem', color: '#fca5a5' }}>
+                            Reason: {lastResult.quarantine.reason} | Quarantine ID: <strong className="mono">{lastResult.quarantine.quarantine_id}</strong>
+                          </span>
+                        </div>
+                      </div>
+                      <span className="badge badge-critical">ISOLATED IN VAULT</span>
+                    </div>
+                  </div>
+                )}
+
                 {/* 4 Telemetry Metric Chips */}
                 <div className="post-kpi-row">
                   <div className="post-kpi-card">

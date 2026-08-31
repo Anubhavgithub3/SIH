@@ -109,4 +109,19 @@ export class ApiService {
       method: 'POST',
     });
   }
+
+  static async getAuditLogs() {
+    return this.request<import('./types').AuditMetadata[]>('/api/v1/audit/logs');
+  }
+
+  static async getQuarantineItems() {
+    return this.request<import('./types').QuarantineMetadata[]>('/api/v1/quarantine');
+  }
+
+  static async quarantineAction(quarantine_id: string, action: 'release' | 'purge') {
+    return this.request<{ status: string; message: string }>('/api/v1/quarantine/action', {
+      method: 'POST',
+      body: JSON.stringify({ quarantine_id, action }),
+    });
+  }
 }

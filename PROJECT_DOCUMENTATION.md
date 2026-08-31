@@ -72,6 +72,8 @@ If human customs officers had to manually read, decipher, and re-type every pass
 - **Zero-Loss Auto-Detection**: Instantly parses 5 major log formats out-of-the-box: Syslog (RFC 3164/5424), CEF (ArcSight/Palo Alto), LEEF (IBM QRadar), Key-Value pairs, and Structured JSON.
 - **Canonical Schema Harmonization**: Maps vendor-specific data fields into unified OCSF (Open Cybersecurity Schema Framework) and ECS (Elastic Common Schema) JSON structures.
 - **Contextual Threat Intelligence**: Automatically enriches IP addresses with country codes, cities, geographic risk scores, and reputation threat scores in under 0.4 milliseconds.
+- **SHA-256 Cryptographic Audit Hashing & Backup Vault**: Calculates an immutable 256-bit SHA-256 hash for every raw log *before* parsing, saving raw log backups to persistent disk storage (`storage/backups/`) for audit compliance and tamper verification.
+- **Threat Quarantine Isolation Engine**: Automatically isolates unrecognized log formats, unparseable payloads, or malicious exploit signatures (`<script>`, `select *`, `drop table`, `chmod 777`) into a secure Quarantine Vault (`storage/quarantine/`) with full REST API release/purge management controls.
 - **Machine Learning Threat Scoring**: Utilizes a 100-tree `RandomForestClassifier` trained on behavioral feature vectors to produce probabilistic threat scores and 4 verdict categories (`BENIGN`, `MONITOR`, `SUSPICIOUS`, `CRITICAL`).
 - **SOC Operations Suite**: Features 6 interactive web workspaces, 3 design themes (Light, Dark, Cyberpunk), live animated traffic flows, MITRE ATT&CK coverage tracking, and 1-click incident playbooks.
 

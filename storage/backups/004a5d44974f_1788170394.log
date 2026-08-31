@@ -1,0 +1,1 @@
+src=10.0.0.5 dst=8.8.8.8 spt=54122 dpt=53 proto=UDP action=deny country=RU bytes=1420 msg="DNS tunneling suspicious behavior"

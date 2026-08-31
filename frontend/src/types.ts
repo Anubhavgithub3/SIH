@@ -50,6 +50,29 @@ export interface ThreatDetails {
   [key: string]: unknown;
 }
 
+export interface AuditMetadata {
+  sha256_hash: string;
+  short_hash: string;
+  timestamp: string;
+  bytes_size: number;
+  source: string;
+  tamper_proof_status: string;
+  backup_path?: string;
+  backup_id?: string;
+}
+
+export interface QuarantineMetadata {
+  quarantine_id: string;
+  sha256_hash: string;
+  quarantined_at: string;
+  reason: string;
+  risk_score: number;
+  source: string;
+  raw_payload?: string;
+  status: 'ISOLATED' | 'RELEASED' | 'PURGED' | string;
+  file_path?: string;
+}
+
 export interface NormalizedEvent {
   id?: string;
   timestamp?: string;
@@ -61,6 +84,8 @@ export interface NormalizedEvent {
   enrichment?: EnrichmentDetails;
   threat?: ThreatDetails;
   metadata?: EventMetadata;
+  audit?: AuditMetadata;
+  quarantine?: QuarantineMetadata;
   raw_log?: string;
   anomaly_score?: number;
   threat_label?: string;

@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "concurrently -k -n \"BACKEND,FRONTEND\" -c \"bgBlue.bold,bgMagenta.bold\" \"npm:backend\" \"npm:frontend\"",
-    "backend": "cd .. && (/opt/anaconda3/bin/python3 -m uvicorn app.main:app --reload --port 8000 || python3 -m uvicorn app.main:app --reload --port 8000)",
+    "backend": "cd .. && (.venv/bin/python -m uvicorn app.main:app --reload --port 8000 || python3 -m uvicorn app.main:app --reload --port 8000 || uvicorn app.main:app --reload --port 8000)",
     "frontend": "vite --port 5173",
     "build": "tsc -b && vite build",
     "preview": "vite preview"

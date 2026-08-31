@@ -8,6 +8,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
+from app.collector.audit_vault import (
+    audit_and_backup_raw_log,
+    quarantine_payload,
+    get_audit_logs,
+    get_quarantine_items,
+    process_quarantine_action
+)
 from app.collector.file_collector import read_log_file
 from app.detector.format_detector import detect_format
 from app.enrichment.geoip import enrich_geoip
@@ -249,15 +256,53 @@ def _parse_raw(raw_text: str):
 
 
 def process_log_payload(raw_text: str):
+    # 1. SHA-256 Hash & Immutable Audit Backup
+    audit_info = audit_and_backup_raw_log(raw_text, source='api')
+
+    # 2. Format Detection & Parsing
+    fmt = detect_format(raw_text)
     parsed_events = _parse_raw(raw_text)
+
+    # 3. Threat Quarantine Engine (Unrecognized taxonomy or exploit payloads)
+    is_unknown_fmt = fmt == 'unknown'
+    has_exploit_sig = any(
+        kw in raw_text.lower() for kw in ['<script', 'select *', 'union select', 'drop table', 'chmod 777', 'eval(', '../../etc/passwd']
+    )
+
+    quarantine_info = None
+    if is_unknown_fmt or has_exploit_sig:
+        reason = 'UNRECOGNIZED_LOG_TAXONOMY' if is_unknown_fmt else 'MALICIOUS_EXPLOIT_PAYLOAD'
+        quarantine_info = quarantine_payload(raw_text, reason=reason, risk_score=0.95 if has_exploit_sig else 0.85, source='api')
+
     normalized = []
     for event in parsed_events:
         normal = normalize_event(event, source='api')
         normal = enrich_geoip(normal)
         normal = enrich_threat_intel(normal)
+
+        # Attach Audit & Quarantine Metadata
+        normal['audit'] = audit_info
+        if quarantine_info:
+            normal['quarantine'] = quarantine_info
+            if 'event' in normal and isinstance(normal['event'], dict):
+                normal['event']['severity'] = 'critical'
+                normal['event']['action'] = 'quarantined'
+            if 'threat' in normal and isinstance(normal['threat'], dict):
+                normal['threat']['reputation'] = 'malicious'
+                normal['threat']['score'] = 0.95
+
         normalized.append(normal)
+
     valid = validate_events(normalized)
-    result = valid[0] if valid else {'event': {'type': 'unknown'}, 'metadata': {'processing_status': 'unparsed'}, 'raw_log': raw_text}
+    result = valid[0] if valid else {
+        'event': {'type': 'unknown', 'action': 'quarantined' if quarantine_info else 'unparsed', 'severity': 'critical'},
+        'metadata': {'processing_status': 'unparsed'},
+        'raw_log': raw_text,
+        'audit': audit_info
+    }
+    if quarantine_info and 'quarantine' not in result:
+        result['quarantine'] = quarantine_info
+
     EVENT_STORE.append(result)
     return result
 
@@ -1576,6 +1621,26 @@ def clear_events():
     count = len(EVENT_STORE)
     EVENT_STORE.clear()
     return {'message': 'Event store cleared', 'count': count}
+
+
+@app.get('/api/v1/audit/logs')
+@app.get('/api/audit/logs')
+def get_audit_trail_logs(limit: int = 50):
+    return get_audit_logs(limit)
+
+
+@app.get('/api/v1/quarantine')
+@app.get('/api/quarantine')
+def get_quarantine_vault_items(limit: int = 50):
+    return get_quarantine_items(limit)
+
+
+@app.post('/api/v1/quarantine/action')
+@app.post('/api/quarantine/action')
+def quarantine_action(payload: dict):
+    quarantine_id = payload.get('quarantine_id') or ''
+    action = payload.get('action') or 'release'
+    return process_quarantine_action(quarantine_id, action)
 
 
 if __name__ == '__main__':
