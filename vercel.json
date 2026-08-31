@@ -4,32 +4,32 @@
   "framework": "vite",
   "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": "https://sih-ydlw.onrender.com/api/$1"
-    },
-    {
       "source": "/health",
-      "destination": "https://sih-ydlw.onrender.com/health"
+      "destination": "/api/index.py"
     },
     {
       "source": "/summary",
-      "destination": "https://sih-ydlw.onrender.com/summary"
+      "destination": "/api/index.py"
     },
     {
       "source": "/events",
-      "destination": "https://sih-ydlw.onrender.com/events"
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/logs",
+      "destination": "/api/index.py"
     },
     {
       "source": "/overview",
-      "destination": "https://sih-ydlw.onrender.com/overview"
+      "destination": "/api/index.py"
     },
     {
       "source": "/ml/(.*)",
-      "destination": "https://sih-ydlw.onrender.com/ml/$1"
+      "destination": "/api/index.py"
     },
     {
-      "source": "/ingest",
-      "destination": "https://sih-ydlw.onrender.com/ingest"
+      "source": "/api/(.*)",
+      "destination": "/api/index.py"
     },
     {
       "source": "/(.*)",
