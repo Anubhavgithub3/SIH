@@ -6,25 +6,53 @@ import type {
   SecuritySummary,
 } from './types';
 
-const API_BASE = import.meta.env.VITE_API_URL || '';
+export function getApiBase(): string {
+  if (typeof window !== 'undefined') {
+    const custom = localStorage.getItem('ulf_api_base');
+    if (custom && custom.trim()) return custom.trim().replace(/\/+$/, '');
+  }
+  const envUrl = import.meta.env.VITE_API_URL || '';
+  return envUrl ? envUrl.trim().replace(/\/+$/, '') : '';
+}
+
+export function setApiBase(url: string): void {
+  if (typeof window !== 'undefined') {
+    if (url.trim()) {
+      localStorage.setItem('ulf_api_base', url.trim().replace(/\/+$/, ''));
+    } else {
+      localStorage.removeItem('ulf_api_base');
+    }
+  }
+}
 
 export class ApiService {
   private static async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
-    const url = `${API_BASE}${endpoint}`;
-    const response = await fetch(url, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...options?.headers,
-      },
-    });
+    const base = getApiBase();
+    const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+    const url = `${base}${cleanEndpoint}`;
 
-    if (!response.ok) {
-      const errorBody = await response.text().catch(() => '');
-      throw new Error(`HTTP ${response.status} (${response.statusText}): ${errorBody || 'Request failed'}`);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+    try {
+      const response = await fetch(url, {
+        ...options,
+        signal: controller.signal,
+        headers: {
+          'Content-Type': 'application/json',
+          ...options?.headers,
+        },
+      });
+
+      if (!response.ok) {
+        const errorBody = await response.text().catch(() => '');
+        throw new Error(`HTTP ${response.status} (${response.statusText}): ${errorBody || 'Request failed'}`);
+      }
+
+      return (await response.json()) as T;
+    } finally {
+      clearTimeout(timeoutId);
     }
-
-    return response.json() as Promise<T>;
   }
 
   static async getHealth(): Promise<HealthStatus> {
