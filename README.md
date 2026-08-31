@@ -1,7 +1,7 @@
 # 🛡️ Universal Log Framework (ULF)
 ### Vendor-Neutral Telemetry Normalization • GeoIP & Threat Intel • ML Anomaly Engine • SOC Operations Suite
 
-[![Live Production](https://img.shields.io/badge/Live%20Platform-Vercel%20Production-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://my-project-sih.vercel.app/)
+[![Live Production](https://img.shields.io/badge/Live%20Platform-Render%20Production-46E3B7?style=for-the-badge&logo=render&logoColor=white)](https://sih-o1fd.onrender.com)
 [![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://reactjs.org)
@@ -40,9 +40,9 @@
   - [11.1 Prerequisites](#111-prerequisites)
   - [11.2 Single-Command Full-Stack Execution](#112-single-command-full-stack-execution)
   - [11.3 Running Backend Unit Tests](#113-running-backend-unit-tests)
-- [12. Production Deployment Guide](#12-production-deployment-guide)
-  - [12.1 Vercel Deployment (Frontend + Serverless Functions)](#121-vercel-deployment)
-  - [12.2 Render Web Service Backend Deployment](#122-render-backend-deployment)
+- [12. Production Deployment Guide (Render)](#12-production-deployment-guide-render)
+  - [12.1 Deploying on Render Web Services](#121-deploying-on-render-web-services)
+  - [12.2 Production Health & Telemetry Verification](#122-production-health--telemetry-verification)
 - [13. Frequently Asked Questions (FAQ)](#13-frequently-asked-questions-faq)
 - [14. Project Directory Structure](#14-project-directory-structure)
 
@@ -143,7 +143,7 @@ flowchart LR
 
 1. **Format Detection**: Inspects header prefixes, pipe separators, and regex patterns to identify log taxonomy.
 2. **Syntax Parsing**: Extracts key-value mappings, RFC timestamp formats, and payload bodies.
-3. **Field Normalization**: Maps multi-vendor keys into standard standard keys (`src_ip` $\rightarrow$ `network.source_ip`, `dst_port` $\rightarrow$ `network.destination_port`).
+3. **Field Normalization**: Maps multi-vendor keys into standard keys (`src_ip` $\rightarrow$ `network.source_ip`, `dst_port` $\rightarrow$ `network.destination_port`).
 4. **GeoIP Enrichment**: Autonomous system lookup determining origin country, ISO code, and geographical risk score.
 5. **Threat Intelligence**: Cross-references source/destination IPs against threat intelligence lists to tag suspicious reputations.
 6. **Machine Learning Scoring**: Evaluates the 7-dimension feature vector through 100 decision trees to produce anomaly probabilities.
@@ -338,7 +338,7 @@ Tested on standard cloud instances (2 vCPU, 4GB RAM):
 ### Example cURL Ingestion Request
 
 ```bash
-curl -X POST "https://my-project-sih.vercel.app/logs" \
+curl -X POST "https://sih-o1fd.onrender.com/logs" \
   -H "Content-Type: application/json" \
   -d '{"log": "CEF:0|Palo Alto|PAN-OS|11.0|THREAT|C2|9|src=1.2.3.4 dst=10.0.0.1 msg=c2-beacon action=deny"}'
 ```
@@ -416,30 +416,33 @@ tests/test_api_endpoints.py::test_overview_endpoint PASSED               [100%]
 
 ---
 
-## 12. Production Deployment Guide
+## 12. Production Deployment Guide (Render)
 
-### 12.1 Vercel Deployment
+### 12.1 Deploying on Render Web Services
 
-The project is pre-configured with `vercel.json` to deploy both the React frontend and the Python Serverless API functions:
+The platform is deployed as a unified full-stack web service on [Render](https://render.com):
 
-1. Import the repository in [Vercel Dashboard](https://vercel.com).
-2. Set **Root Directory** to `universal-log-framework`.
-3. Vercel automatically detects `vite build` and deploys serverless endpoints from `api/index.py`.
+1. Go to [Render Dashboard](https://dashboard.render.com/) $\rightarrow$ Click **New +** $\rightarrow$ **Web Service**.
+2. Connect the GitHub repository: `Anubhavgithub3/SIH`.
+3. Configure the build and run settings:
+   - **Name**: `sih-o1fd` *(or your service name)*
+   - **Environment / Runtime**: `Python 3`
+   - **Region**: Closest to your users (e.g. *Singapore* / *Frankfurt* / *Oregon*)
+   - **Branch**: `main`
+   - **Build Command**: `pip install -r requirements.txt && cd frontend && npm install && npm run build && cd ..`
+   - **Start Command**: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+   - **Plan**: `Free` ($0/month)
+4. Click **Create Web Service**.
 
 ---
 
-### 12.2 Render Backend Deployment
+### 12.2 Production Health & Telemetry Verification
 
-To run the dedicated 24/7 backend on [Render](https://render.com):
+Once deployed, verify the live endpoints:
 
-1. Click **New +** $\rightarrow$ **Web Service** $\rightarrow$ Select `Anubhavgithub3/SIH`.
-2. Configure settings:
-   - **Runtime**: `Python 3`
-   - **Build Command**: `pip install -r requirements.txt`
-   - **Start Command**: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
-3. In your Vercel Dashboard, add environment variable:
-   - **Key**: `VITE_API_URL`
-   - **Value**: `https://your-render-service.onrender.com`
+- **Live Web Application**: [https://sih-o1fd.onrender.com](https://sih-o1fd.onrender.com)
+- **Live Health Endpoint**: `https://sih-o1fd.onrender.com/health`
+- **Live API Documentation (Swagger)**: `https://sih-o1fd.onrender.com/docs`
 
 ---
 
@@ -452,7 +455,7 @@ ULF uses a multi-layered heuristic detector (`app/parsers/detector.py`). It firs
 
 <details>
 <summary><strong>Q2: Can I connect downstream forwarders like Logstash, FluentBit, or Vector to ULF?</strong></summary>
-Yes! ULF exposes high-speed RESTful JSON ingestion endpoints (<code>POST /logs</code> and <code>POST /api/logs/batch</code>). Configure your Logstash or FluentBit HTTP output plugin to stream logs directly to your hosted ULF endpoint.
+Yes! ULF exposes high-speed RESTful JSON ingestion endpoints (<code>POST /logs</code> and <code>POST /api/logs/batch</code>). Configure your Logstash or FluentBit HTTP output plugin to stream logs directly to your hosted Render ULF endpoint (<code>https://sih-o1fd.onrender.com/logs</code>).
 </details>
 
 <details>
@@ -471,8 +474,6 @@ Render's free tier spins down instances after 15 minutes of inactivity. When a n
 
 ```
 universal-log-framework/
-├── api/
-│   └── index.py                     # Vercel Serverless Python entrypoint
 ├── app/
 │   ├── __init__.py
 │   ├── main.py                      # FastAPI application, routes & event store
@@ -523,6 +524,5 @@ universal-log-framework/
 │   ├── test_ml_model.py             # ML classification tests
 │   └── test_api_endpoints.py        # FastAPI endpoint integration tests
 ├── requirements.txt                 # Python dependencies
-├── vercel.json                      # Vercel deployment routing configuration
 └── README.md                        # Documentation & Architecture Reference
 ```
