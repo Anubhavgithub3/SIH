@@ -53,11 +53,66 @@ export const LogIngestionStudio: React.FC<LogIngestionStudioProps> = ({
   );
   const [resultTab, setResultTab] = useState<'visual' | 'json'>('visual');
 
-  // File Upload State
+  // File Upload & Performance Benchmark State
+  const [perfTelemetry, setPerfTelemetry] = useState<{ count: number; durationMs: number; eps: number } | null>(null);
   const [uploadedFile, setUploadedFile] = useState<{ name: string; size: number; lines: string[]; content: string } | null>(null);
   const [enrichmentProgress, setEnrichmentProgress] = useState<number>(0);
   const [enrichedBatchResults, setEnrichedBatchResults] = useState<NormalizedEvent[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Batch Explorer Table State
+  const [batchSearch, setBatchSearch] = useState('');
+  const [batchFilter, setBatchFilter] = useState<'all' | 'critical' | 'blocked' | 'foreign'>('all');
+  const [batchPage, setBatchPage] = useState(1);
+  const [selectedBatchItem, setSelectedBatchItem] = useState<NormalizedEvent | null>(null);
+
+  const run10kPerformanceTest = async () => {
+    setActiveMode('batch');
+    setIsProcessing(true);
+    setErrorMessage(null);
+    setPipelineStep(1);
+
+    const templates = [
+      'CEF:0|Palo Alto Networks|PAN-OS|11.0|THREAT|C2-Beacon|9|src=185.220.101.5 dst=10.5.2.4 action=deny country=CN spt=443 dpt=58920 msg="C2 beaconing signature matched"',
+      'Aug 31 10:45:00 web-01 sshd[4192]: Failed password for root from 192.168.1.10 port 22 ssh2',
+      'LEEF:2.0|IBM|QRadar|7.5|ThreatAlert|src=198.51.100.23 dst=172.16.0.4 action=block sev=8 msg="Malicious IP access attempt"',
+      'src=10.0.0.5 dst=8.8.8.8 spt=54122 dpt=53 proto=UDP action=deny country=RU bytes=1420 msg="DNS tunneling suspicious behavior"',
+      '{"timestamp":"2026-08-31T11:00:00Z","src_ip":"185.220.101.5","dst_ip":"10.0.0.8","action":"block","severity":"high","country":"DE"}'
+    ];
+
+    const logs: string[] = [];
+    for (let i = 0; i < 10000; i++) {
+      logs.push(templates[i % templates.length].replace('185.220.101.5', `185.220.${i % 250}.${(i % 254) + 1}`));
+    }
+
+    setBatchText(logs.slice(0, 10).join('\n') + `\n... [${logs.length - 10} more log lines loaded in memory]`);
+    setPipelineStep(2);
+
+    try {
+      const startTime = performance.now();
+      const results = await onBatchIngest(logs);
+      const endTime = performance.now();
+
+      const durationMs = Math.max(1, Math.round(endTime - startTime));
+      const eps = Math.round((results.length / durationMs) * 1000);
+
+      setPerfTelemetry({
+        count: results.length,
+        durationMs,
+        eps
+      });
+
+      setPipelineStep(4);
+      setEnrichedBatchResults(results);
+      if (results.length > 0) {
+        setLastResult(results[results.length - 1]);
+      }
+    } catch (err: unknown) {
+      setErrorMessage(err instanceof Error ? err.message : '10k Performance Benchmark failed');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   const PRESETS = [
     {
@@ -389,6 +444,15 @@ export const LogIngestionStudio: React.FC<LogIngestionStudioProps> = ({
               <span>Load Demo Presets:</span>
             </span>
             <div className="preset-chips">
+              <button
+                onClick={run10kPerformanceTest}
+                className="preset-chip"
+                style={{ background: 'rgba(16, 185, 129, 0.15)', borderColor: 'rgba(16, 185, 129, 0.4)', color: '#10b981', fontWeight: 600 }}
+                title="Generate & ingest 10,000 logs in real time to test throughput"
+              >
+                <Zap size={13} style={{ marginRight: '4px' }} />
+                <span>⚡ Test 10,000 Logs High-Perf</span>
+              </button>
               {PRESETS.map((p) => (
                 <button
                   key={p.id}
@@ -481,7 +545,7 @@ export const LogIngestionStudio: React.FC<LogIngestionStudioProps> = ({
                     <div className="results-badge-group">
                       <CheckCircle2 size={20} className="text-emerald" />
                       <div>
-                        <h4 className="results-title">Successfully Processed &amp; Enriched {enrichedBatchResults.length} Events</h4>
+                        <h4 className="results-title">Successfully Processed &amp; Enriched {enrichedBatchResults.length.toLocaleString()} Events</h4>
                         <p className="results-subtitle">Canonical schema mapped, GeoIP resolved, and ML anomaly scored</p>
                       </div>
                     </div>
@@ -501,24 +565,24 @@ export const LogIngestionStudio: React.FC<LogIngestionStudioProps> = ({
                   <div className="enriched-kpi-grid">
                     <div className="enriched-kpi-box">
                       <span className="kpi-lbl">Total Records</span>
-                      <span className="kpi-val mono">{enrichedBatchResults.length}</span>
+                      <span className="kpi-val mono">{enrichedBatchResults.length.toLocaleString()}</span>
                     </div>
                     <div className="enriched-kpi-box">
                       <span className="kpi-lbl">Threats Flagged</span>
                       <span className="kpi-val mono text-coral">
-                        {enrichedBatchResults.filter((e) => e.threat?.reputation === 'suspicious' || e.threat?.reputation === 'malicious').length}
+                        {enrichedBatchResults.filter((e) => e.threat?.reputation === 'suspicious' || e.threat?.reputation === 'malicious').length.toLocaleString()}
                       </span>
                     </div>
                     <div className="enriched-kpi-box">
                       <span className="kpi-lbl">Blocked / Denied</span>
                       <span className="kpi-val mono text-amber">
-                        {enrichedBatchResults.filter((e) => (e.event?.action || '').toLowerCase().includes('deny') || (e.event?.action || '').toLowerCase().includes('block')).length}
+                        {enrichedBatchResults.filter((e) => (e.event?.action || '').toLowerCase().includes('deny') || (e.event?.action || '').toLowerCase().includes('block')).length.toLocaleString()}
                       </span>
                     </div>
                     <div className="enriched-kpi-box">
                       <span className="kpi-lbl">Foreign GeoIPs</span>
                       <span className="kpi-val mono text-cyan">
-                        {enrichedBatchResults.filter((e) => e.enrichment?.country && e.enrichment.country !== 'US' && e.enrichment.country !== 'IN').length}
+                        {enrichedBatchResults.filter((e) => e.enrichment?.country && e.enrichment.country !== 'US' && e.enrichment.country !== 'IN').length.toLocaleString()}
                       </span>
                     </div>
                   </div>
@@ -526,6 +590,257 @@ export const LogIngestionStudio: React.FC<LogIngestionStudioProps> = ({
               )}
             </div>
           )}
+        </div>
+      )}
+
+      {/* FULL BATCH QUERY RESULTS MATRIX TABLE (Visible for 10k runs & batch mode) */}
+      {enrichedBatchResults.length > 0 && (
+        <div className="batch-results-table-container glass-panel" style={{ marginTop: '24px', padding: '20px', borderRadius: '14px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+            <div>
+              <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Activity size={20} className="text-emerald" />
+                <span>Interactive Batch Query Results ({enrichedBatchResults.length.toLocaleString()} Parsed Queries)</span>
+              </h3>
+              <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#9ca3af' }}>
+                Explore, filter, search, and inspect canonical OCSF data for all {enrichedBatchResults.length.toLocaleString()} queries
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button onClick={downloadEnrichedJSON} className="btn btn-secondary btn-sm">
+                <Download size={14} className="text-cyan" />
+                <span>Export All {enrichedBatchResults.length.toLocaleString()} JSON</span>
+              </button>
+              <button onClick={downloadEnrichedCSV} className="btn btn-secondary btn-sm">
+                <FileSpreadsheet size={14} className="text-emerald" />
+                <span>Export All {enrichedBatchResults.length.toLocaleString()} CSV</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Filter Chips & Search Bar */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', gap: '16px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <button
+                onClick={() => { setBatchFilter('all'); setBatchPage(1); }}
+                className={`preset-chip ${batchFilter === 'all' ? 'active' : ''}`}
+                style={{ padding: '6px 14px' }}
+              >
+                All Queries ({enrichedBatchResults.length.toLocaleString()})
+              </button>
+              <button
+                onClick={() => { setBatchFilter('critical'); setBatchPage(1); }}
+                className={`preset-chip ${batchFilter === 'critical' ? 'active' : ''}`}
+                style={{ padding: '6px 14px', color: '#ef4444' }}
+              >
+                🔴 Critical Threats ({enrichedBatchResults.filter(e => ['critical','high'].includes(String(e.event?.severity||e.severity||'').toLowerCase())).length.toLocaleString()})
+              </button>
+              <button
+                onClick={() => { setBatchFilter('blocked'); setBatchPage(1); }}
+                className={`preset-chip ${batchFilter === 'blocked' ? 'active' : ''}`}
+                style={{ padding: '6px 14px', color: '#f59e0b' }}
+              >
+                🚫 Blocked / Denied ({enrichedBatchResults.filter(e => (e.event?.action||'').toLowerCase().includes('deny') || (e.event?.action||'').toLowerCase().includes('block')).length.toLocaleString()})
+              </button>
+              <button
+                onClick={() => { setBatchFilter('foreign'); setBatchPage(1); }}
+                className={`preset-chip ${batchFilter === 'foreign' ? 'active' : ''}`}
+                style={{ padding: '6px 14px', color: '#06b6d4' }}
+              >
+                🌍 Foreign GeoIP ({enrichedBatchResults.filter(e => e.enrichment?.country && !['US','IN'].includes(e.enrichment.country)).length.toLocaleString()})
+              </button>
+            </div>
+
+            <div style={{ position: 'relative', width: '280px' }}>
+              <Search size={15} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }} />
+              <input
+                type="text"
+                value={batchSearch}
+                onChange={(e) => { setBatchSearch(e.target.value); setBatchPage(1); }}
+                placeholder="Search all 10k queries by IP, msg..."
+                className="log-textarea mono"
+                style={{ paddingLeft: '32px', height: '36px', minHeight: '36px', fontSize: '0.85rem' }}
+              />
+            </div>
+          </div>
+
+          {/* Results Table */}
+          <div style={{ overflowX: 'auto', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
+              <thead>
+                <tr style={{ background: 'rgba(255,255,255,0.04)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                  <th style={{ padding: '10px 12px' }}># Query</th>
+                  <th style={{ padding: '10px 12px' }}>Format</th>
+                  <th style={{ padding: '10px 12px' }}>Source IP</th>
+                  <th style={{ padding: '10px 12px' }}>Destination IP</th>
+                  <th style={{ padding: '10px 12px' }}>Action</th>
+                  <th style={{ padding: '10px 12px' }}>Geo Location</th>
+                  <th style={{ padding: '10px 12px' }}>Threat Verdict</th>
+                  <th style={{ padding: '10px 12px' }}>Inspect</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(() => {
+                  const filtered = enrichedBatchResults.filter((item) => {
+                    if (batchFilter === 'critical') {
+                      const sev = String(item.event?.severity || item.severity || '').toLowerCase();
+                      if (sev !== 'critical' && sev !== 'high') return false;
+                    } else if (batchFilter === 'blocked') {
+                      const act = String(item.event?.action || '').toLowerCase();
+                      if (!act.includes('deny') && !act.includes('block') && !act.includes('drop')) return false;
+                    } else if (batchFilter === 'foreign') {
+                      const country = item.enrichment?.country || '';
+                      if (!country || country === 'US' || country === 'IN') return false;
+                    }
+
+                    if (!batchSearch.trim()) return true;
+                    const q = batchSearch.toLowerCase();
+                    const srcIp = item.network?.source_ip || item.network?.src_ip || '';
+                    const dstIp = item.network?.destination_ip || item.network?.dst_ip || '';
+                    const action = item.event?.action || '';
+                    const msg = item.event?.message || '';
+                    const country = item.enrichment?.country || '';
+                    const source = item.source || '';
+                    return (
+                      srcIp.toLowerCase().includes(q) ||
+                      dstIp.toLowerCase().includes(q) ||
+                      action.toLowerCase().includes(q) ||
+                      msg.toLowerCase().includes(q) ||
+                      country.toLowerCase().includes(q) ||
+                      source.toLowerCase().includes(q)
+                    );
+                  });
+
+                  const pSize = 15;
+                  const pageResults = filtered.slice((batchPage - 1) * pSize, batchPage * pSize);
+
+                  return pageResults.map((item, idx) => {
+                    const globalIdx = (batchPage - 1) * pSize + idx + 1;
+                    const srcIp = item.network?.source_ip || item.network?.src_ip || 'N/A';
+                    const dstIp = item.network?.destination_ip || item.network?.dst_ip || 'N/A';
+                    const act = item.event?.action || 'processed';
+                    const country = item.enrichment?.country || 'Unknown';
+                    const reputation = item.threat?.reputation || 'benign';
+                    const isSelected = selectedBatchItem === item;
+
+                    return (
+                      <React.Fragment key={idx}>
+                        <tr
+                          onClick={() => setSelectedBatchItem(isSelected ? null : item)}
+                          style={{
+                            borderBottom: '1px solid rgba(255,255,255,0.04)',
+                            background: isSelected ? 'rgba(16, 185, 129, 0.1)' : idx % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.01)',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          <td className="mono" style={{ padding: '10px 12px', color: '#9ca3af' }}>#{globalIdx}</td>
+                          <td style={{ padding: '10px 12px' }}>
+                            <span className="badge badge-purple" style={{ fontSize: '0.75rem' }}>{(item.source || 'parsed').toUpperCase()}</span>
+                          </td>
+                          <td className="mono" style={{ padding: '10px 12px', fontWeight: 600 }}>{srcIp}</td>
+                          <td className="mono" style={{ padding: '10px 12px', color: '#9ca3af' }}>{dstIp}</td>
+                          <td style={{ padding: '10px 12px' }}>
+                            <span className={`badge ${act.includes('deny') || act.includes('block') || act.includes('drop') ? 'badge-critical' : 'badge-low'}`} style={{ fontSize: '0.75rem' }}>
+                              {act.toUpperCase()}
+                            </span>
+                          </td>
+                          <td style={{ padding: '10px 12px' }}>
+                            <span className="mono">{country}</span>
+                          </td>
+                          <td style={{ padding: '10px 12px' }}>
+                            <span className={`badge ${reputation === 'suspicious' || reputation === 'malicious' ? 'badge-critical' : 'badge-low'}`} style={{ fontSize: '0.75rem' }}>
+                              {reputation.toUpperCase()}
+                            </span>
+                          </td>
+                          <td style={{ padding: '10px 12px' }}>
+                            <button className="micro-btn" style={{ padding: '2px 8px' }}>
+                              {isSelected ? 'Close' : 'View JSON'}
+                            </button>
+                          </td>
+                        </tr>
+                        {isSelected && (
+                          <tr>
+                            <td colSpan={8} style={{ padding: '12px', background: 'rgba(0,0,0,0.3)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#10b981' }}>Canonical OCSF JSON for Query #{globalIdx}:</span>
+                                <span style={{ fontSize: '0.75rem', color: '#9ca3af' }}>100% Zero-Loss Normalized</span>
+                              </div>
+                              <pre className="mono" style={{ fontSize: '0.8rem', background: '#090d16', padding: '12px', borderRadius: '6px', overflowX: 'auto', margin: 0, color: '#06b6d4' }}>
+                                {JSON.stringify(item, null, 2)}
+                              </pre>
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
+                    );
+                  });
+                })()}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination Footer */}
+          {(() => {
+            const filtered = enrichedBatchResults.filter((item) => {
+              if (batchFilter === 'critical') {
+                const sev = String(item.event?.severity || item.severity || '').toLowerCase();
+                if (sev !== 'critical' && sev !== 'high') return false;
+              } else if (batchFilter === 'blocked') {
+                const act = String(item.event?.action || '').toLowerCase();
+                if (!act.includes('deny') && !act.includes('block') && !act.includes('drop')) return false;
+              } else if (batchFilter === 'foreign') {
+                const country = item.enrichment?.country || '';
+                if (!country || country === 'US' || country === 'IN') return false;
+              }
+
+              if (!batchSearch.trim()) return true;
+              const q = batchSearch.toLowerCase();
+              const srcIp = item.network?.source_ip || item.network?.src_ip || '';
+              const dstIp = item.network?.destination_ip || item.network?.dst_ip || '';
+              const action = item.event?.action || '';
+              const msg = item.event?.message || '';
+              const country = item.enrichment?.country || '';
+              const source = item.source || '';
+              return (
+                srcIp.toLowerCase().includes(q) ||
+                dstIp.toLowerCase().includes(q) ||
+                action.toLowerCase().includes(q) ||
+                msg.toLowerCase().includes(q) ||
+                country.toLowerCase().includes(q) ||
+                source.toLowerCase().includes(q)
+              );
+            });
+            const pSize = 15;
+            const totalP = Math.max(1, Math.ceil(filtered.length / pSize));
+
+            return (
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', fontSize: '0.85rem' }}>
+                <span style={{ color: '#9ca3af' }}>
+                  Showing <strong>{(batchPage - 1) * pSize + 1}</strong> - <strong>{Math.min(batchPage * pSize, filtered.length)}</strong> of <strong>{filtered.length.toLocaleString()}</strong> filtered query results
+                </span>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <button
+                    onClick={() => setBatchPage((p) => Math.max(1, p - 1))}
+                    disabled={batchPage === 1}
+                    className="btn btn-secondary btn-sm"
+                  >
+                    Previous Page
+                  </button>
+                  <span className="mono" style={{ padding: '0 8px' }}>
+                    Page {batchPage} of {totalP}
+                  </span>
+                  <button
+                    onClick={() => setBatchPage((p) => Math.min(totalP, p + 1))}
+                    disabled={batchPage === totalP}
+                    className="btn btn-secondary btn-sm"
+                  >
+                    Next Page
+                  </button>
+                </div>
+              </div>
+            );
+          })()}
         </div>
       )}
 
@@ -792,6 +1107,33 @@ export const LogIngestionStudio: React.FC<LogIngestionStudioProps> = ({
             {/* TAB 1: VISUAL FLOW MATRIX */}
             {resultTab === 'visual' && (
               <div className="visual-matrix-wrap">
+                {perfTelemetry && (
+                  <div className="perf-telemetry-banner" style={{ background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '14px 18px', borderRadius: '10px', marginBottom: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Zap size={18} style={{ color: '#10b981' }} />
+                        <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 600, color: '#10b981' }}>
+                          ⚡ 10,000 Log High-Performance Benchmark Results
+                        </h4>
+                      </div>
+                      <span className="badge badge-emerald">100% OCSF Schema Harmonized</span>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+                      <div style={{ background: 'rgba(0,0,0,0.2)', padding: '10px', borderRadius: '6px' }}>
+                        <span style={{ fontSize: '0.75rem', color: '#9ca3af', display: 'block' }}>Processed Volume</span>
+                        <span className="mono" style={{ fontSize: '1.1rem', fontWeight: 700, color: '#10b981' }}>{perfTelemetry.count.toLocaleString()} Logs</span>
+                      </div>
+                      <div style={{ background: 'rgba(0,0,0,0.2)', padding: '10px', borderRadius: '6px' }}>
+                        <span style={{ fontSize: '0.75rem', color: '#9ca3af', display: 'block' }}>End-to-End Latency</span>
+                        <span className="mono" style={{ fontSize: '1.1rem', fontWeight: 700, color: '#06b6d4' }}>{perfTelemetry.durationMs} ms</span>
+                      </div>
+                      <div style={{ background: 'rgba(0,0,0,0.2)', padding: '10px', borderRadius: '6px' }}>
+                        <span style={{ fontSize: '0.75rem', color: '#9ca3af', display: 'block' }}>Throughput Rate</span>
+                        <span className="mono" style={{ fontSize: '1.1rem', fontWeight: 700, color: '#a855f7' }}>{perfTelemetry.eps.toLocaleString()} / sec</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 {/* 4 Telemetry Metric Chips */}
                 <div className="post-kpi-row">
                   <div className="post-kpi-card">

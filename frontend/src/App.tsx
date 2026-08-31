@@ -283,6 +283,9 @@ export function App() {
     try {
       const results = await ApiService.ingestBatchLogs(logs);
       showToast(`Batch of ${results.length} logs successfully processed`, 'success');
+      if (results.length > 0) {
+        setEvents(results);
+      }
       await refreshAllData(false);
       return results;
     } catch (err: unknown) {

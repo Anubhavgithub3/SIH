@@ -32,7 +32,7 @@ export class ApiService {
     const url = `${base}${cleanEndpoint}`;
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 12000);
+    const timeoutId = setTimeout(() => controller.abort(), 60000);
 
     try {
       const response = await fetch(url, {
@@ -95,10 +95,13 @@ export class ApiService {
   }
 
   static async ingestBatchLogs(logs: string[]): Promise<NormalizedEvent[]> {
-    return this.request<NormalizedEvent[]>('/api/logs/batch', {
+    const response = await this.request<NormalizedEvent[] | { results: NormalizedEvent[] }>('/api/logs/batch', {
       method: 'POST',
       body: JSON.stringify({ logs }),
     });
+    if (Array.isArray(response)) return response;
+    if (response && Array.isArray(response.results)) return response.results;
+    return [];
   }
 
   static async clearEvents(): Promise<{ message: string; count: number }> {

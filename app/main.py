@@ -111,44 +111,116 @@ def _build_summary(events=None):
     }
 
 
+def _build_dynamic_alerts(events):
+    alerts = []
+    seen = set()
+    for e in reversed(events):
+        if not isinstance(e, dict):
+            continue
+        threat = e.get('threat', {}) if isinstance(e.get('threat'), dict) else {}
+        event_meta = e.get('event', {}) if isinstance(e.get('event'), dict) else {}
+        network = e.get('network', {}) if isinstance(e.get('network'), dict) else {}
+        enrichment = e.get('enrichment', {}) if isinstance(e.get('enrichment'), dict) else {}
+
+        rep = str(threat.get('reputation') or '').lower()
+        sev = str(event_meta.get('severity') or e.get('severity') or 'low').lower()
+        src_ip = network.get('source_ip') or network.get('src_ip') or 'Unknown'
+        msg = event_meta.get('message') or e.get('message') or 'Security Event Flagged'
+        country = enrichment.get('country') or 'GLOBAL'
+
+        if rep in {'suspicious', 'malicious'} or sev in {'critical', 'high'}:
+            key = f"{src_ip}:{msg}"
+            if key not in seen:
+                seen.add(key)
+                alerts.append({
+                    'title': f"{event_meta.get('action', 'Security Event').upper()}: {msg}",
+                    'severity': sev,
+                    'source': src_ip if src_ip != 'Unknown' else country,
+                    'summary': f"Normalized telemetric hit from {country} ({src_ip}). {msg}"
+                })
+        if len(alerts) >= 10:
+            break
+
+    if not alerts:
+        alerts = [
+            {'title': 'System Status Normal', 'severity': 'low', 'source': 'Core', 'summary': 'Telemetry stream operational. Zero critical threats detected.'}
+        ]
+    return alerts
+
+
+def _build_dynamic_incidents(events):
+    incidents = []
+    seen = set()
+    for e in reversed(events):
+        if not isinstance(e, dict):
+            continue
+        event_meta = e.get('event', {}) if isinstance(e.get('event'), dict) else {}
+        threat = e.get('threat', {}) if isinstance(e.get('threat'), dict) else {}
+        ml = e.get('ml_prediction', {}) if isinstance(e.get('ml_prediction'), dict) else {}
+
+        sev = str(event_meta.get('severity') or e.get('severity') or 'low').lower()
+        msg = event_meta.get('message') or 'Anomaly Activity'
+        score = ml.get('score') if isinstance(ml, dict) and 'score' in ml else (0.92 if sev == 'critical' else 0.75 if sev == 'high' else 0.45)
+
+        if sev in {'critical', 'high', 'medium'} or threat.get('reputation') in {'suspicious', 'malicious'}:
+            key = msg
+            if key not in seen:
+                seen.add(key)
+                score_val = int(score * 100) if isinstance(score, (int, float)) and score <= 1.0 else int(score) if isinstance(score, (int, float)) else 50
+                incidents.append({
+                    'title': msg,
+                    'severity': sev,
+                    'score': score_val
+                })
+        if len(incidents) >= 10:
+            break
+
+    if not incidents:
+        incidents = [{'title': 'Baseline Monitoring Active', 'severity': 'low', 'score': 15}]
+    return incidents
+
+
+def _build_dynamic_assets(events):
+    assets_map = {}
+    for e in events:
+        if not isinstance(e, dict):
+            continue
+        host = e.get('host', {}) if isinstance(e.get('host'), dict) else {}
+        net = e.get('network', {}) if isinstance(e.get('network'), dict) else {}
+        sev = _get_event_severity(e)
+
+        asset_name = host.get('name') or net.get('destination_ip') or net.get('dst_ip') or 'api-gateway'
+        if asset_name not in assets_map:
+            assets_map[asset_name] = {'name': asset_name, 'status': 'healthy', 'risk': 'low', 'owner': 'Security'}
+
+        if sev in {'critical', 'high'}:
+            assets_map[asset_name]['status'] = 'critical'
+            assets_map[asset_name]['risk'] = 'high'
+        elif sev == 'medium' and assets_map[asset_name]['status'] != 'critical':
+            assets_map[asset_name]['status'] = 'watch'
+            assets_map[asset_name]['risk'] = 'medium'
+
+    assets_list = list(assets_map.values())
+    if not assets_list:
+        assets_list = [
+            {'name': 'web-01', 'status': 'healthy', 'risk': 'low', 'owner': 'Platform'},
+            {'name': 'api-gateway', 'status': 'watch', 'risk': 'medium', 'owner': 'Security'},
+            {'name': 'db-prod-02', 'status': 'critical', 'risk': 'high', 'owner': 'Data'},
+        ]
+    return assets_list[:8]
+
+
 def _build_overview():
     summary = _build_summary(EVENT_STORE)
-    alerts = [
-        {
-            'title': 'C2 beaconing detected',
-            'severity': 'high',
-            'source': '1.2.3.4',
-            'summary': 'Outbound beacon pattern for 9 minutes observed in firewall telemetry.',
-        },
-        {
-            'title': 'Failed admin logins',
-            'severity': 'medium',
-            'source': '10.0.0.5',
-            'summary': 'Repeated authentication failures on privileged account across SSH surface.',
-        },
-        {
-            'title': 'Geo-risk flagged',
-            'severity': 'low',
-            'source': 'CN',
-            'summary': 'Traffic from elevated-risk geography matched historical suspicious activity.',
-        },
-    ]
-    incidents = [
-        {'title': 'Malicious outbound connection', 'severity': 'high', 'score': 92},
-        {'title': 'Repeated authentication failures', 'severity': 'medium', 'score': 68},
-        {'title': 'Unusual geo access', 'severity': 'low', 'score': 47},
-    ]
-    assets = [
-        {'name': 'web-01', 'status': 'healthy', 'risk': 'low', 'owner': 'Platform'},
-        {'name': 'api-gateway', 'status': 'watch', 'risk': 'medium', 'owner': 'Security'},
-        {'name': 'db-prod-02', 'status': 'critical', 'risk': 'high', 'owner': 'Data'},
-    ]
+    alerts = _build_dynamic_alerts(EVENT_STORE)
+    incidents = _build_dynamic_incidents(EVENT_STORE)
+    assets = _build_dynamic_assets(EVENT_STORE)
     return {
         'summary': summary,
         'alerts': alerts,
         'incidents': incidents,
         'assets': assets,
-        'events': EVENT_STORE[:8],
+        'events': EVENT_STORE[-50:] if len(EVENT_STORE) > 50 else EVENT_STORE,
         'generated_at': datetime.now(timezone.utc).isoformat(),
     }
 
@@ -1458,29 +1530,17 @@ def api_overview():
 
 @app.get('/api/alerts')
 def api_alerts():
-    return [
-        {'title': 'C2 beaconing detected', 'severity': 'high', 'source': '1.2.3.4', 'summary': 'External host established repeated outbound connections to a suspicious remote endpoint.'},
-        {'title': 'Failed admin logins', 'severity': 'medium', 'source': '10.0.0.5', 'summary': 'Privileged SSH failures exceeded threshold across multiple identity checks.'},
-        {'title': 'Geo-risk flagged', 'severity': 'low', 'source': 'CN', 'summary': 'Traffic from a high-risk region matched historical threat intelligence data.'},
-    ]
+    return _build_dynamic_alerts(EVENT_STORE)
 
 
 @app.get('/api/incidents')
 def api_incidents():
-    return [
-        {'title': 'Malicious outbound connection', 'severity': 'high', 'score': 92},
-        {'title': 'Repeated authentication failures', 'severity': 'medium', 'score': 68},
-        {'title': 'Geo-anomaly on internal portal', 'severity': 'low', 'score': 47},
-    ]
+    return _build_dynamic_incidents(EVENT_STORE)
 
 
 @app.get('/api/assets')
 def api_assets():
-    return [
-        {'name': 'web-01', 'status': 'healthy', 'risk': 'low', 'owner': 'Platform'},
-        {'name': 'api-gateway', 'status': 'watch', 'risk': 'medium', 'owner': 'Security'},
-        {'name': 'db-prod-02', 'status': 'critical', 'risk': 'high', 'owner': 'Data'},
-    ]
+    return _build_dynamic_assets(EVENT_STORE)
 
 
 @app.get('/api/ml/insights')

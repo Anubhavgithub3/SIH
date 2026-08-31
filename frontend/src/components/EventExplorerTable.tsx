@@ -27,6 +27,7 @@ export const EventExplorerTable: React.FC<EventExplorerTableProps> = ({ events }
   const [quickFilter, setQuickFilter] = useState<'all' | 'blocked' | 'critical' | 'threats' | 'geo'>('all');
   const [selectedEvent, setSelectedEvent] = useState<NormalizedEvent | null>(null);
   const [copied, setCopied] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Filtered & Searched Events
   const filteredEvents = useMemo(() => {
@@ -232,11 +233,27 @@ export const EventExplorerTable: React.FC<EventExplorerTableProps> = ({ events }
       </div>
 
       {/* Events Count summary */}
-      <div className="table-meta-bar">
-        <span>Showing <strong>{filteredEvents.length}</strong> of {events.length} normalized canonical records</span>
-        {(filteredEvents.length < events.length || quickFilter !== 'all') && (
-          <span className="badge badge-cyan">Filter Active</span>
-        )}
+      <div className="table-meta-bar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span>Showing <strong>{Math.min(filteredEvents.length, (currentPage - 1) * 25 + 1)}</strong> - <strong>{Math.min(currentPage * 25, filteredEvents.length)}</strong> of {filteredEvents.length.toLocaleString()} normalized canonical records</span>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <button
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            className="btn btn-secondary btn-sm"
+          >
+            Previous
+          </button>
+          <span className="mono" style={{ fontSize: '0.85rem' }}>
+            Page {currentPage} of {Math.max(1, Math.ceil(filteredEvents.length / 25))}
+          </span>
+          <button
+            onClick={() => setCurrentPage((p) => Math.min(Math.max(1, Math.ceil(filteredEvents.length / 25)), p + 1))}
+            disabled={currentPage >= Math.ceil(filteredEvents.length / 25)}
+            className="btn btn-secondary btn-sm"
+          >
+            Next
+          </button>
+        </div>
       </div>
 
       {/* Main Table */}
@@ -255,7 +272,7 @@ export const EventExplorerTable: React.FC<EventExplorerTableProps> = ({ events }
             </tr>
           </thead>
           <tbody>
-            {filteredEvents.map((event, idx) => {
+            {filteredEvents.slice((currentPage - 1) * 25, currentPage * 25).map((event, idx) => {
               const severity = String(event.event?.severity || event.severity || 'low').toLowerCase();
               const action = String(event.event?.action || event.event?.type || 'event');
               const sourceIp = event.network?.source_ip || event.network?.src_ip || '—';
