@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   FileCode2,
   Sparkles,
@@ -8,7 +8,6 @@ import {
   AlertTriangle,
   ArrowRight,
   Shield,
-  Layers,
   Copy,
   Check,
   Activity,
@@ -17,6 +16,9 @@ import {
   Zap,
   Network,
   Code2,
+  FileSpreadsheet,
+  Download,
+  FileText,
 } from 'lucide-react';
 import type { NormalizedEvent } from '../types';
 
@@ -35,9 +37,15 @@ export const LogIngestionStudio: React.FC<LogIngestionStudioProps> = ({
   const [lastResult, setLastResult] = useState<NormalizedEvent | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-  const [activeMode, setActiveMode] = useState<'single' | 'batch'>('single');
+  const [activeMode, setActiveMode] = useState<'single' | 'batch' | 'file'>('single');
   const [batchText, setBatchText] = useState('');
   const [resultTab, setResultTab] = useState<'visual' | 'json'>('visual');
+
+  // File Upload State
+  const [uploadedFile, setUploadedFile] = useState<{ name: string; size: number; lines: string[]; content: string } | null>(null);
+  const [enrichmentProgress, setEnrichmentProgress] = useState<number>(0);
+  const [enrichedBatchResults, setEnrichedBatchResults] = useState<NormalizedEvent[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const PRESETS = [
     {
@@ -116,6 +124,7 @@ export const LogIngestionStudio: React.FC<LogIngestionStudioProps> = ({
       const results = await onBatchIngest(lines);
       if (results.length > 0) {
         setLastResult(results[results.length - 1]);
+        setEnrichedBatchResults(results);
       }
       setBatchText('');
     } catch (err: unknown) {
@@ -133,11 +142,91 @@ export const LogIngestionStudio: React.FC<LogIngestionStudioProps> = ({
     reader.onload = (event) => {
       const content = event.target?.result as string;
       if (content) {
+        let lines: string[] = [];
+        if (content.trim().startsWith('[') && content.trim().endsWith(']')) {
+          try {
+            const parsed = JSON.parse(content);
+            if (Array.isArray(parsed)) {
+              lines = parsed.map((item) => (typeof item === 'string' ? item : JSON.stringify(item)));
+            }
+          } catch {
+            lines = content.split('\n').map((l) => l.trim()).filter(Boolean);
+          }
+        } else {
+          lines = content.split('\n').map((l) => l.trim()).filter(Boolean);
+        }
+
+        setUploadedFile({
+          name: file.name,
+          size: file.size,
+          lines,
+          content,
+        });
         setBatchText(content);
-        setActiveMode('batch');
+        setEnrichmentProgress(0);
+        setEnrichedBatchResults([]);
       }
     };
     reader.readAsText(file);
+  };
+
+  const handleProcessAndEnrichFile = async () => {
+    if (!uploadedFile || uploadedFile.lines.length === 0) return;
+    setIsProcessing(true);
+    setErrorMessage(null);
+    setEnrichmentProgress(15);
+
+    try {
+      setEnrichmentProgress(35);
+      await new Promise((r) => setTimeout(r, 200));
+      setEnrichmentProgress(65);
+
+      const results = await onBatchIngest(uploadedFile.lines);
+      setEnrichmentProgress(100);
+      setEnrichedBatchResults(results);
+      if (results.length > 0) {
+        setLastResult(results[results.length - 1]);
+      }
+    } catch (err: unknown) {
+      setErrorMessage(err instanceof Error ? err.message : 'File processing & enrichment failed');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const downloadEnrichedJSON = () => {
+    if (enrichedBatchResults.length === 0) return;
+    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(enrichedBatchResults, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute('href', dataStr);
+    downloadAnchor.setAttribute('download', `enriched_${uploadedFile?.name || 'logs'}_${Date.now()}.json`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+  };
+
+  const downloadEnrichedCSV = () => {
+    if (enrichedBatchResults.length === 0) return;
+    const headers = ['Timestamp', 'Source', 'Action', 'Severity', 'Source IP', 'Destination IP', 'Country', 'Threat', 'Score'];
+    const rows = enrichedBatchResults.map((e) => [
+      e.timestamp || '',
+      e.source || '',
+      e.event?.action || '',
+      e.event?.severity || e.severity || '',
+      e.network?.source_ip || e.network?.src_ip || '',
+      e.network?.destination_ip || e.network?.dst_ip || '',
+      e.enrichment?.country || '',
+      e.threat?.reputation || '',
+      e.threat?.score || '',
+    ]);
+
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((r) => r.map((c) => `"${c}"`).join(','))].join('\n');
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute('href', encodeURI(csvContent));
+    downloadAnchor.setAttribute('download', `enriched_${uploadedFile?.name || 'logs'}_${Date.now()}.csv`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
   };
 
   const copyResultJSON = () => {
@@ -166,13 +255,17 @@ export const LogIngestionStudio: React.FC<LogIngestionStudioProps> = ({
 
   return (
     <div className="ingestion-studio-container">
-      {/* Studio Header & Presets */}
+      {/* Studio Header & Mode Tabs */}
       <div className="studio-top glass-panel">
         <div className="card-header-flex">
           <div>
-            <h2 className="card-title">Live Log Ingestion & Pipeline Studio</h2>
+            <div className="badge-row" style={{ display: 'flex', gap: '8px', marginBottom: '6px' }}>
+              <span className="badge badge-purple">Multi-Format Pipeline</span>
+              <span className="badge badge-cyan">Zero-Loss Normalization</span>
+            </div>
+            <h2 className="card-title">Live Log Ingestion &amp; Pipeline Studio</h2>
             <p className="card-subtitle">
-              Feed raw multi-vendor security telemetry directly into the normalization engine
+              Feed raw multi-vendor security telemetry directly or upload files for automated canonical normalization and threat enrichment
             </p>
           </div>
           <div className="mode-tabs">
@@ -186,311 +279,408 @@ export const LogIngestionStudio: React.FC<LogIngestionStudioProps> = ({
               className={`mode-tab-btn ${activeMode === 'batch' ? 'active' : ''}`}
               onClick={() => setActiveMode('batch')}
             >
-              Batch / File Upload
+              Batch Multi-Line
+            </button>
+            <button
+              className={`mode-tab-btn ${activeMode === 'file' ? 'active' : ''}`}
+              onClick={() => setActiveMode('file')}
+            >
+              📁 Upload &amp; Enrich File
             </button>
           </div>
         </div>
 
-        {/* Quick Presets */}
-        <div className="preset-bar">
-          <span className="preset-label">
-            <Sparkles size={14} className="text-accent" />
-            <span>Load Demo Presets:</span>
-          </span>
-          <div className="preset-chips">
-            {PRESETS.map((p) => (
-              <button
-                key={p.id}
-                onClick={() => {
-                  setLogText(p.log);
-                  setActiveMode('single');
-                }}
-                className="preset-chip"
-              >
-                <span>{p.name}</span>
-                <span className="preset-format-tag">{p.format}</span>
-              </button>
-            ))}
+        {/* Quick Presets (for single/batch modes) */}
+        {activeMode !== 'file' && (
+          <div className="preset-bar">
+            <span className="preset-label">
+              <Sparkles size={14} className="text-accent" />
+              <span>Load Demo Presets:</span>
+            </span>
+            <div className="preset-chips">
+              {PRESETS.map((p) => (
+                <button
+                  key={p.id}
+                  onClick={() => {
+                    setLogText(p.log);
+                    setActiveMode('single');
+                  }}
+                  className="preset-chip"
+                >
+                  <span>{p.name}</span>
+                  <span className="preset-format-tag">{p.format}</span>
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
-      {/* Main Studio Grid */}
-      <div className="studio-grid">
-        {/* Ingestion Editor Box */}
-        <div className="glass-panel editor-panel">
-          <div className="editor-top-bar">
-            <div className="editor-indicator">
-              <FileCode2 size={16} className="text-accent" />
-              <span className="editor-label">Raw Telemetry Input</span>
+      {/* FILE UPLOAD & ENRICH VIEW */}
+      {activeMode === 'file' && (
+        <div className="file-upload-workspace glass-panel">
+          <div className="file-upload-dropzone" onClick={() => fileInputRef.current?.click()}>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileUpload}
+              accept=".log,.txt,.json,.csv,.syslog,.cef,.leef"
+              style={{ display: 'none' }}
+            />
+            <div className="dropzone-content">
+              <div className="dropzone-icon-box">
+                <Upload size={32} className="text-coral" />
+              </div>
+              <h3 className="dropzone-title">
+                {uploadedFile ? `Loaded: ${uploadedFile.name}` : 'Click to Browse or Drag & Drop Log File'}
+              </h3>
+              <p className="dropzone-subtitle">
+                Supported formats: <strong>.log, .txt, .json, .csv, .syslog, .cef, .leef</strong>
+              </p>
+              {uploadedFile && (
+                <div className="file-meta-tags">
+                  <span className="badge badge-cyan mono">{(uploadedFile.size / 1024).toFixed(1)} KB</span>
+                  <span className="badge badge-purple mono">{uploadedFile.lines.length} Events Detected</span>
+                  <span className="badge badge-low">Ready for Normalization &amp; Enrichment</span>
+                </div>
+              )}
             </div>
-            <span className="format-detect-badge">
-              {detectFormatPreview(activeMode === 'single' ? logText : batchText)}
-            </span>
           </div>
 
-          {activeMode === 'single' ? (
-            <textarea
-              className="log-textarea mono"
-              value={logText}
-              onChange={(e) => setLogText(e.target.value)}
-              placeholder="Paste raw Syslog, CEF, LEEF, JSON, or Key-Value security log here..."
-              rows={5}
-            />
-          ) : (
-            <div className="batch-editor-wrap">
+          {/* File Preview & Actions */}
+          {uploadedFile && (
+            <div className="file-preview-section">
+              <div className="file-preview-header">
+                <div className="preview-title-wrap">
+                  <FileText size={16} className="text-muted" />
+                  <span className="preview-title">File Preview (First 5 lines):</span>
+                </div>
+                <button
+                  onClick={handleProcessAndEnrichFile}
+                  disabled={isProcessing}
+                  className="btn btn-primary btn-enrich-all"
+                >
+                  {isProcessing ? <Zap size={16} className="animate-spin" /> : <Sparkles size={16} />}
+                  <span>{isProcessing ? 'Normalizing & Enriching File...' : '⚡ Process & Enrich File (Normalize + GeoIP + ML)'}</span>
+                </button>
+              </div>
+
+              <pre className="file-preview-box mono">
+                {uploadedFile.lines.slice(0, 5).join('\n')}
+                {uploadedFile.lines.length > 5 ? `\n... and ${uploadedFile.lines.length - 5} more lines` : ''}
+              </pre>
+
+              {/* Real-time Progress Bar */}
+              {isProcessing && (
+                <div className="enrichment-progress-bar-wrap">
+                  <div className="progress-info-row">
+                    <span>Batch Normalization &amp; Enrichment in progress...</span>
+                    <span className="mono">{enrichmentProgress}%</span>
+                  </div>
+                  <div className="progress-track">
+                    <div className="progress-fill" style={{ width: `${enrichmentProgress}%` }} />
+                  </div>
+                </div>
+              )}
+
+              {/* Enriched Summary & Download Buttons */}
+              {enrichedBatchResults.length > 0 && (
+                <div className="enriched-file-results-card">
+                  <div className="results-header-flex">
+                    <div className="results-badge-group">
+                      <CheckCircle2 size={20} className="text-emerald" />
+                      <div>
+                        <h4 className="results-title">Successfully Processed &amp; Enriched {enrichedBatchResults.length} Events</h4>
+                        <p className="results-subtitle">Canonical schema mapped, GeoIP resolved, and ML anomaly scored</p>
+                      </div>
+                    </div>
+
+                    <div className="download-btn-group">
+                      <button onClick={downloadEnrichedJSON} className="btn btn-secondary btn-sm">
+                        <Download size={14} className="text-cyan" />
+                        <span>Download Enriched JSON</span>
+                      </button>
+                      <button onClick={downloadEnrichedCSV} className="btn btn-secondary btn-sm">
+                        <FileSpreadsheet size={14} className="text-emerald" />
+                        <span>Download Enriched CSV</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="enriched-kpi-grid">
+                    <div className="enriched-kpi-box">
+                      <span className="kpi-lbl">Total Records</span>
+                      <span className="kpi-val mono">{enrichedBatchResults.length}</span>
+                    </div>
+                    <div className="enriched-kpi-box">
+                      <span className="kpi-lbl">Threats Flagged</span>
+                      <span className="kpi-val mono text-coral">
+                        {enrichedBatchResults.filter((e) => e.threat?.reputation === 'suspicious' || e.threat?.reputation === 'malicious').length}
+                      </span>
+                    </div>
+                    <div className="enriched-kpi-box">
+                      <span className="kpi-lbl">Blocked / Denied</span>
+                      <span className="kpi-val mono text-amber">
+                        {enrichedBatchResults.filter((e) => (e.event?.action || '').toLowerCase().includes('deny') || (e.event?.action || '').toLowerCase().includes('block')).length}
+                      </span>
+                    </div>
+                    <div className="enriched-kpi-box">
+                      <span className="kpi-lbl">Foreign GeoIPs</span>
+                      <span className="kpi-val mono text-cyan">
+                        {enrichedBatchResults.filter((e) => e.enrichment?.country && e.enrichment.country !== 'US' && e.enrichment.country !== 'IN').length}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Main Studio Grid (for Single & Batch modes) */}
+      {activeMode !== 'file' && (
+        <div className="studio-grid">
+          {/* Ingestion Editor Box */}
+          <div className="glass-panel editor-panel">
+            <div className="editor-top-bar">
+              <div className="editor-indicator">
+                <FileCode2 size={16} className="text-coral" />
+                <span className="editor-label">Raw Telemetry Input</span>
+              </div>
+              <span className="format-detect-badge">
+                {detectFormatPreview(activeMode === 'single' ? logText : batchText)}
+              </span>
+            </div>
+
+            {activeMode === 'single' ? (
               <textarea
                 className="log-textarea mono"
-                value={batchText}
-                onChange={(e) => setBatchText(e.target.value)}
-                placeholder="Paste multiple log lines (one event per line)..."
+                value={logText}
+                onChange={(e) => setLogText(e.target.value)}
+                placeholder="Paste raw Syslog, CEF, LEEF, JSON, or Key-Value security log here..."
                 rows={5}
               />
-              <div className="file-upload-row">
-                <label className="btn btn-secondary btn-sm upload-label">
-                  <Upload size={14} />
-                  <span>Upload .log / .json File</span>
-                  <input
-                    type="file"
-                    accept=".log,.txt,.json"
-                    onChange={handleFileUpload}
-                    style={{ display: 'none' }}
-                  />
-                </label>
-                <span className="file-hint">Accepts .log, .txt, .json files</span>
-              </div>
-            </div>
-          )}
-
-          {errorMessage && (
-            <div className="error-banner">
-              <AlertTriangle size={16} />
-              <span>{errorMessage}</span>
-            </div>
-          )}
-
-          <div className="editor-actions">
-            {activeMode === 'single' ? (
-              <button
-                onClick={handleProcess}
-                disabled={isProcessing || !logText.trim()}
-                className="btn btn-primary"
-              >
-                <Send size={15} />
-                <span>{isProcessing ? 'Normalizing...' : 'Process & Enrich Log'}</span>
-              </button>
             ) : (
-              <button
-                onClick={handleBatchProcess}
-                disabled={isProcessing || !batchText.trim()}
-                className="btn btn-primary"
-              >
-                <Layers size={15} />
-                <span>{isProcessing ? 'Ingesting Batch...' : 'Ingest All Log Lines'}</span>
-              </button>
+              <div className="batch-editor-wrap">
+                <textarea
+                  className="log-textarea mono"
+                  value={batchText}
+                  onChange={(e) => setBatchText(e.target.value)}
+                  placeholder="Paste multiple log lines (one event per line)..."
+                  rows={5}
+                />
+                <div className="file-upload-row">
+                  <label className="btn btn-secondary btn-sm upload-label">
+                    <Upload size={14} />
+                    <span>Upload .log File</span>
+                    <input
+                      type="file"
+                      onChange={handleFileUpload}
+                      accept=".log,.txt,.json,.csv"
+                      style={{ display: 'none' }}
+                    />
+                  </label>
+                  <span className="upload-hint">Upload text, json or syslog format</span>
+                </div>
+              </div>
             )}
-          </div>
-        </div>
 
-        {/* Live Pipeline Flow Visualizer */}
-        <div className="glass-panel pipeline-panel">
-          <div className="card-header-flex">
-            <div>
-              <h3 className="card-title">Normalization Pipeline Execution</h3>
-              <p className="card-subtitle">Zero-loss canonical transformation stages</p>
-            </div>
-            <Shield size={18} className="text-muted" />
-          </div>
-
-          <div className="pipeline-steps-list">
-            {pipelineStages.map((stg, idx) => {
-              const isPassed = pipelineStep > idx || !!lastResult;
-              const isCurrent = pipelineStep === idx + 1 && isProcessing;
-
-              return (
-                <div
-                  key={stg.label}
-                  className={`pipeline-step-item ${isPassed ? 'passed' : ''} ${isCurrent ? 'active' : ''}`}
-                >
-                  <div className="step-badge">
-                    {isPassed ? (
-                      <CheckCircle2 size={16} className="text-emerald" />
-                    ) : (
-                      <span>{idx + 1}</span>
-                    )}
-                  </div>
-                  <div className="step-info">
-                    <span className="step-label">{stg.label}</span>
-                    <span className="step-desc">{stg.desc}</span>
-                  </div>
-                  {idx < pipelineStages.length - 1 && (
-                    <ArrowRight size={14} className="step-arrow" />
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
-      {/* POST-INGESTION COMPREHENSIVE VISUALIZATION & ANALYTICS CARDS */}
-      {lastResult && (
-        <div className="glass-panel parsed-result-card fade-in">
-          <div className="card-header-flex">
-            <div>
-              <div className="result-badge-row">
-                <span className="badge badge-low">
-                  <CheckCircle2 size={12} /> Pipeline Complete
-                </span>
-                <span className="badge badge-info">Source: {lastResult.source || 'api'}</span>
-                <span className={`badge badge-${sev === 'critical' ? 'critical' : sev === 'high' ? 'high' : 'medium'}`}>
-                  Severity: {sev.toUpperCase()}
-                </span>
-              </div>
-              <h3 className="card-title">Parsed & Normalized Event Intelligence</h3>
-              <p className="card-subtitle">Contextual enrichment, network flow, and canonical schema</p>
-            </div>
-
-            <div className="result-toggle-group">
+            <div className="editor-actions">
               <button
-                className={`result-toggle-btn ${resultTab === 'visual' ? 'active' : ''}`}
-                onClick={() => setResultTab('visual')}
+                className="btn btn-primary btn-run"
+                onClick={activeMode === 'single' ? handleProcess : handleBatchProcess}
+                disabled={isProcessing}
               >
-                <Network size={14} />
-                <span>Visual Flow & Graph</span>
-              </button>
-              <button
-                className={`result-toggle-btn ${resultTab === 'json' ? 'active' : ''}`}
-                onClick={() => setResultTab('json')}
-              >
-                <Code2 size={14} />
-                <span>Canonical JSON</span>
+                {isProcessing ? (
+                  <>
+                    <Activity size={16} className="animate-spin" />
+                    <span>Normalizing &amp; Scoring...</span>
+                  </>
+                ) : (
+                  <>
+                    <Send size={16} />
+                    <span>{activeMode === 'single' ? 'Process & Normalize Event' : 'Process Batch Stream'}</span>
+                  </>
+                )}
               </button>
             </div>
-          </div>
 
-          {resultTab === 'visual' ? (
-            <div className="parsed-visual-content">
-              {/* 4 Telemetry KPI Cards */}
-              <div className="parsed-kpi-grid">
-                <div className="parsed-kpi-card">
-                  <div className="kpi-card-top">
-                    <span className="kpi-card-label">Security Action</span>
-                    <Activity size={16} className="text-coral" />
-                  </div>
-                  <div className="kpi-card-val" style={{ color: isBlocked ? '#ef4444' : '#10b981' }}>
-                    {action.toUpperCase()}
-                  </div>
-                  <span className="kpi-card-sub">Enforced at perimeter</span>
-                </div>
-
-                <div className="parsed-kpi-card">
-                  <div className="kpi-card-top">
-                    <span className="kpi-card-label">Geo Origin</span>
-                    <Globe2 size={16} className="text-cyan" />
-                  </div>
-                  <div className="kpi-card-val">
-                    {country}
-                  </div>
-                  <span className="kpi-card-sub">GeoIP CTI Resolved</span>
-                </div>
-
-                <div className="parsed-kpi-card">
-                  <div className="kpi-card-top">
-                    <span className="kpi-card-label">Threat Intel</span>
-                    <Shield size={16} className="text-amber" />
-                  </div>
-                  <div className="kpi-card-val" style={{ color: reputation === 'suspicious' || reputation === 'malicious' ? '#ef4444' : '#10b981' }}>
-                    {reputation.toUpperCase()}
-                  </div>
-                  <span className="kpi-card-sub">IOC Feed Lookup</span>
-                </div>
-
-                <div className="parsed-kpi-card">
-                  <div className="kpi-card-top">
-                    <span className="kpi-card-label">Engine Latency</span>
-                    <Zap size={16} className="text-accent" />
-                  </div>
-                  <div className="kpi-card-val mono">
-                    &lt;1.2 ms
-                  </div>
-                  <span className="kpi-card-sub">100% OCSF Standard</span>
-                </div>
+            {errorMessage && (
+              <div className="pipeline-error-box">
+                <AlertTriangle size={16} />
+                <span>{errorMessage}</span>
               </div>
+            )}
 
-              {/* Interactive Network Flow Diagram */}
-              <div className="network-flow-card">
-                <div className="flow-card-title">
-                  <Network size={16} className="text-accent" />
-                  <span>Interactive Network Flow Diagram</span>
-                </div>
+            {/* Ingestion Pipeline Execution Progress Steps */}
+            <div className="pipeline-tracker">
+              <span className="tracker-title">Pipeline Execution Telemetry</span>
+              <div className="pipeline-steps-row">
+                {pipelineStages.map((stg, idx) => {
+                  const stepNum = idx + 1;
+                  const isDone = pipelineStep > stepNum || (pipelineStep === 4 && stepNum === 4);
+                  const isActive = pipelineStep === stepNum && isProcessing;
 
-                <div className="flow-diagram-wrapper">
-                  <div className="flow-node node-source">
-                    <span className="node-badge">SOURCE HOST</span>
-                    <span className="node-ip mono">{srcIp}</span>
-                    <span className="node-port mono">Port: {srcPort}</span>
-                    <span className="node-geo">Origin: {country}</span>
-                  </div>
-
-                  <div className="flow-connection">
-                    <div className="flow-line">
-                      <div className={`flow-pulse ${isBlocked ? 'blocked' : 'allowed'}`} />
+                  return (
+                    <div
+                      key={stg.label}
+                      className={`pipeline-step-item ${isDone ? 'done' : ''} ${isActive ? 'active' : ''}`}
+                    >
+                      <div className="step-num-circle">
+                        {isDone ? <Check size={12} /> : stepNum}
+                      </div>
+                      <div className="step-texts">
+                        <span className="step-label">{stg.label}</span>
+                        <span className="step-desc">{stg.desc}</span>
+                      </div>
+                      {idx < pipelineStages.length - 1 && (
+                        <ArrowRight size={14} className="step-arrow" />
+                      )}
                     </div>
-                    <div className="flow-tag">
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Canonical Output & Interactive Visualizations */}
+          <div className="glass-panel output-panel">
+            <div className="output-top-bar">
+              <div className="output-title-group">
+                <Shield size={18} className="text-coral" />
+                <div>
+                  <h3 className="output-heading">Post-Normalization Intelligence</h3>
+                  <span className="output-sub">Standardized canonical entity structure</span>
+                </div>
+              </div>
+
+              <div className="output-view-toggle">
+                <button
+                  className={`toggle-tab-btn ${resultTab === 'visual' ? 'active' : ''}`}
+                  onClick={() => setResultTab('visual')}
+                >
+                  <Network size={14} />
+                  <span>Visual Flow Matrix</span>
+                </button>
+                <button
+                  className={`toggle-tab-btn ${resultTab === 'json' ? 'active' : ''}`}
+                  onClick={() => setResultTab('json')}
+                >
+                  <Code2 size={14} />
+                  <span>Canonical JSON</span>
+                </button>
+              </div>
+            </div>
+
+            {/* TAB 1: VISUAL FLOW MATRIX */}
+            {resultTab === 'visual' && (
+              <div className="visual-matrix-wrap">
+                {/* 4 Telemetry Metric Chips */}
+                <div className="post-kpi-row">
+                  <div className="post-kpi-card">
+                    <span className="kpi-label">Security Action</span>
+                    <div className="kpi-value-wrap">
                       <span className={`badge ${isBlocked ? 'badge-critical' : 'badge-low'}`}>
                         {action.toUpperCase()}
                       </span>
                     </div>
                   </div>
 
-                  <div className="flow-node node-firewall">
-                    <span className="node-badge">SOC CORE ENGINE</span>
-                    <Server size={22} className="text-coral" />
-                    <span className="node-fw-title">Normalization & ML</span>
-                    <span className="node-status text-emerald">Normalized</span>
-                  </div>
-
-                  <div className="flow-connection">
-                    <div className="flow-line">
-                      <div className="flow-pulse allowed" />
-                    </div>
-                    <div className="flow-tag">
-                      <span className="badge badge-info">FORWARD</span>
+                  <div className="post-kpi-card">
+                    <span className="kpi-label">Geo Origin</span>
+                    <div className="kpi-value-wrap">
+                      <Globe2 size={14} className="text-cyan" />
+                      <span className="mono kpi-val-text">{country}</span>
                     </div>
                   </div>
 
-                  <div className="flow-node node-dest">
-                    <span className="node-badge">DESTINATION HOST</span>
+                  <div className="post-kpi-card">
+                    <span className="kpi-label">Threat Intel</span>
+                    <div className="kpi-value-wrap">
+                      <span className={`badge ${reputation === 'suspicious' || reputation === 'malicious' ? 'badge-critical' : 'badge-low'}`}>
+                        {reputation.toUpperCase()}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="post-kpi-card">
+                    <span className="kpi-label">Engine Latency</span>
+                    <div className="kpi-value-wrap">
+                      <Zap size={14} className="text-amber" />
+                      <span className="mono kpi-val-text">&lt; 1.8ms</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Animated Network Flow Diagram */}
+                <div className="network-flow-card">
+                  <div className="flow-node source-node">
+                    <div className="node-icon-box">
+                      <Server size={18} />
+                    </div>
+                    <span className="node-title">Source Host</span>
+                    <span className="node-ip mono">{srcIp}</span>
+                    <span className="node-port mono">Port: {srcPort}</span>
+                  </div>
+
+                  <div className="flow-connector">
+                    <div className="connector-line">
+                      <div className="pulse-flow-dot" />
+                    </div>
+                    <span className="flow-action-badge">{action.toUpperCase()}</span>
+                  </div>
+
+                  <div className="flow-node core-node">
+                    <div className="node-icon-box core-icon">
+                      <Shield size={20} />
+                    </div>
+                    <span className="node-title">SOC Core Engine</span>
+                    <span className={`badge badge-${sev === 'critical' ? 'critical' : sev === 'high' ? 'high' : 'low'}`}>
+                      {sev.toUpperCase()} SEVERITY
+                    </span>
+                    <span className="node-sub mono">Enriched &amp; Scored</span>
+                  </div>
+
+                  <div className="flow-connector">
+                    <div className="connector-line">
+                      <div className="pulse-flow-dot delay" />
+                    </div>
+                    <span className="flow-dest-badge">CANONICAL</span>
+                  </div>
+
+                  <div className="flow-node dest-node">
+                    <div className="node-icon-box">
+                      <Server size={18} />
+                    </div>
+                    <span className="node-title">Destination Host</span>
                     <span className="node-ip mono">{dstIp}</span>
                     <span className="node-port mono">Port: {dstPort}</span>
-                    <span className="node-geo">Internal Asset</span>
                   </div>
                 </div>
               </div>
+            )}
 
-              {/* Message Banner */}
-              {lastResult.event?.message && (
-                <div className="event-message-card">
-                  <span className="msg-label">EVENT MESSAGE:</span>
-                  <span className="msg-text mono">{lastResult.event.message}</span>
+            {/* TAB 2: CANONICAL JSON VIEWER */}
+            {resultTab === 'json' && (
+              <div className="json-result-wrap">
+                <div className="json-header-actions">
+                  <span className="json-title mono">Canonical Standard Schema</span>
+                  {lastResult && (
+                    <button onClick={copyResultJSON} className="btn-copy-json">
+                      {copied ? <Check size={14} /> : <Copy size={14} />}
+                      <span>{copied ? 'Copied' : 'Copy JSON'}</span>
+                    </button>
+                  )}
                 </div>
-              )}
-            </div>
-          ) : (
-            <div className="canonical-json-wrapper">
-              <div className="json-header-bar">
-                <span className="mono text-muted">Schema: OCSF / Elastic Common Schema v1.0</span>
-                <button onClick={copyResultJSON} className="btn btn-secondary btn-sm">
-                  {copied ? <Check size={14} className="text-emerald" /> : <Copy size={14} />}
-                  <span>{copied ? 'Copied to Clipboard' : 'Copy Canonical JSON'}</span>
-                </button>
+                <pre className="output-json-pre mono">
+                  {lastResult
+                    ? JSON.stringify(lastResult, null, 2)
+                    : '// Normalized canonical JSON output will appear here after ingestion'}
+                </pre>
               </div>
-              <pre className="modal-json-pre mono">
-                {JSON.stringify(lastResult, null, 2)}
-              </pre>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       )}
     </div>

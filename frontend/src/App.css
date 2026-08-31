@@ -3875,3 +3875,232 @@
   max-height: 260px;
   margin: 0;
 }
+
+/* ==============================================================================
+   FILE UPLOAD & AUTOMATED ENRICHMENT WORKSPACE STYLING
+   ============================================================================== */
+.file-upload-workspace {
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
+.file-upload-dropzone {
+  border: 2px dashed var(--border-active);
+  border-radius: var(--radius-lg);
+  padding: 40px 24px;
+  background: var(--bg-subtle);
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.file-upload-dropzone:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--primary-coral);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.dropzone-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.dropzone-icon-box {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--primary-coral-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dropzone-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.dropzone-subtitle {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+}
+
+.file-meta-tags {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 6px;
+}
+
+/* File Preview Section */
+.file-preview-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 8px;
+}
+
+.file-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.preview-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.preview-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.btn-enrich-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  font-size: 0.88rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--primary-coral), #e07a3f);
+  box-shadow: 0 4px 14px rgba(242, 159, 103, 0.35);
+}
+
+.btn-enrich-all:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(242, 159, 103, 0.5);
+}
+
+.file-preview-box {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  font-size: 0.82rem;
+  color: var(--text-primary);
+  line-height: 1.55;
+  max-height: 180px;
+  overflow-y: auto;
+  margin: 0;
+}
+
+/* Enrichment Progress Bar */
+.enrichment-progress-bar-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 16px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.progress-info-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.progress-track {
+  height: 8px;
+  background: var(--border-subtle);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--support-teal), var(--primary-coral));
+  border-radius: inherit;
+  transition: width 0.3s ease;
+}
+
+/* Enriched Results Card */
+.enriched-file-results-card {
+  padding: 22px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-active);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.results-header-flex {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.results-badge-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.results-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.results-subtitle {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.download-btn-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.enriched-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 14px;
+}
+
+.enriched-kpi-box {
+  padding: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.kpi-lbl {
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.kpi-val {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
