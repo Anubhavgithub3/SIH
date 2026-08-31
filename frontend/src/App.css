@@ -3123,3 +3123,379 @@
 .asset-footer strong {
   color: var(--text-primary);
 }
+
+/* ==============================================================================
+   DEDICATED DASHBOARD FEATURES & LARGER TYPOGRAPHY
+   ============================================================================== */
+
+/* MITRE ATT&CK Matrix Card */
+.mitre-matrix-card {
+  padding: 24px 28px;
+  width: 100%;
+  margin-top: 6px;
+}
+
+.mitre-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  margin-top: 18px;
+}
+
+.mitre-tactic-card {
+  padding: 18px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+  transition: all 0.2s ease;
+}
+
+.mitre-tactic-card:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-active);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.tactic-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tactic-icon-box {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  background: var(--primary-coral-light);
+  color: var(--primary-coral);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tactic-id {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+  display: block;
+}
+
+.tactic-name {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 2px 0;
+}
+
+.tactic-technique {
+  font-size: 0.78rem;
+  color: var(--text-accent);
+  display: block;
+  margin-bottom: 6px;
+}
+
+.tactic-desc {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+.tactic-bar-track {
+  height: 6px;
+  background: var(--border-subtle);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.tactic-bar-fill {
+  height: 100%;
+  border-radius: inherit;
+  transition: width 0.6s ease;
+}
+
+/* Security Pulse Banner & Automated Playbooks */
+.pulse-banner {
+  padding: 24px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.pulse-sla-metrics {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.sla-metric-card {
+  padding: 14px 18px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 170px;
+}
+
+.sla-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sla-label {
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.sla-val {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.sla-sub {
+  font-size: 0.74rem;
+}
+
+.playbook-bar {
+  padding: 20px 28px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.playbook-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.playbook-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.playbook-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+  font-family: var(--font-sans);
+}
+
+.playbook-btn:hover {
+  background: var(--bg-card);
+  border-color: var(--border-active);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.playbook-btn.executed {
+  border-color: var(--support-teal);
+  background: var(--support-teal-light);
+}
+
+.playbook-btn-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.playbook-btn-name {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.playbook-btn-sub {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+}
+
+/* ML Benchmark Accuracy Grid */
+.ml-benchmark-panel {
+  padding: 24px 28px;
+  margin-bottom: 24px;
+  width: 100%;
+}
+
+.benchmark-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-top: 18px;
+}
+
+.benchmark-card {
+  padding: 16px 18px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.benchmark-lbl {
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.benchmark-val {
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.benchmark-sub {
+  font-size: 0.74rem;
+  color: var(--text-secondary);
+}
+
+/* Explorer Quick Filter Chips & Toolbar Header */
+.explorer-header-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.export-btn-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.quick-filter-chips-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.quick-filter-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.quick-chip {
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: var(--font-sans);
+}
+
+.quick-chip:hover {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border-color: var(--border-active);
+}
+
+.quick-chip.active {
+  background: var(--primary-coral-light);
+  color: var(--primary-coral);
+  border-color: var(--border-active);
+  font-weight: 700;
+}
+
+/* Global Content Typography Enhancements */
+.card-title {
+  font-size: 1.18rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.card-subtitle {
+  font-size: 0.86rem;
+  color: var(--text-muted);
+}
+
+.siem-table td {
+  padding: 14px 16px;
+  font-size: 0.88rem;
+}
+
+.siem-table th {
+  padding: 13px 16px;
+  font-size: 0.78rem;
+}
+
+.pulse-card-title {
+  font-size: 0.96rem;
+  font-weight: 700;
+}
+
+.pulse-card-desc {
+  font-size: 0.84rem;
+  line-height: 1.55;
+}
+
+.incident-title {
+  font-size: 1.02rem;
+  font-weight: 700;
+}
+
+.asset-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.feature-name {
+  font-size: 0.98rem;
+  font-weight: 700;
+}
+
+.feature-desc {
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+.endpoint-path {
+  font-size: 0.98rem;
+  font-weight: 800;
+}
+
+.endpoint-desc {
+  font-size: 0.88rem;
+}

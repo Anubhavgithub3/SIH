@@ -25,6 +25,7 @@ import { LogIngestionStudio } from './components/LogIngestionStudio';
 import { EventExplorerTable } from './components/EventExplorerTable';
 import { SecurityPulse } from './components/SecurityPulse';
 import { MLFeatureInfluence } from './components/MLFeatureInfluence';
+import { MitreAttackMatrix } from './components/MitreAttackMatrix';
 import { ApiDocsView } from './components/ApiDocsView';
 
 const INITIAL_EVENTS: NormalizedEvent[] = [
@@ -384,6 +385,12 @@ export function App() {
 
                   <div className="dashboard-grid">
                     <div className="dashboard-full-width">
+                      <MitreAttackMatrix events={events} />
+                    </div>
+                  </div>
+
+                  <div className="dashboard-grid">
+                    <div className="dashboard-full-width">
                       <GeoThreatMap events={events} />
                     </div>
                   </div>
@@ -437,12 +444,14 @@ export function App() {
             </div>
           </div>
 
-          {/* Footer Component */}
-          <Footer
-            setCurrentView={setCurrentView}
-            eventCount={events.length}
-            health={health}
-          />
+          {/* Footer Component - ONLY on Landing/Home Overview Page */}
+          {currentView === 'landing' && (
+            <Footer
+              setCurrentView={setCurrentView}
+              eventCount={events.length}
+              health={health}
+            />
+          )}
         </div>
       </div>
     </div>
