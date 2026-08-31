@@ -1,1 +1,0 @@
-LEEF:2.0|IBM|QRadar|7.5|ThreatAlert|src=198.51.100.23 dst=172.16.0.4 action=block sev=8 msg="Malicious IP access attempt"

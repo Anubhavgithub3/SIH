@@ -1,1 +1,0 @@
-CEF:0|Palo Alto Networks|PAN-OS|11.0|THREAT|C2-Beacon|9|src=185.220.205.138 dst=10.5.2.4 action=deny country=CN spt=443 dpt=58920 msg="C2 beaconing signature matched"
