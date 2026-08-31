@@ -19,6 +19,9 @@ import {
   FileSpreadsheet,
   Download,
   FileText,
+  Trash2,
+  Clipboard,
+  Layers,
 } from 'lucide-react';
 import type { NormalizedEvent } from '../types';
 
@@ -38,7 +41,12 @@ export const LogIngestionStudio: React.FC<LogIngestionStudioProps> = ({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [activeMode, setActiveMode] = useState<'single' | 'batch' | 'file'>('single');
-  const [batchText, setBatchText] = useState('');
+  const [batchText, setBatchText] = useState(
+    'src=1.2.3.4 dst=10.5.2.4 action=deny country=CN msg="c2-beacon"\n' +
+    'Aug 31 10:45:00 web-01 sshd[4192]: Failed password for root from 192.168.1.10 port 22\n' +
+    'CEF:0|Palo Alto|PAN-OS|11.0|THREAT|C2|9|src=185.220.101.5 dst=10.0.0.1 action=deny\n' +
+    '{"timestamp":"2026-08-31T11:00:00Z","src_ip":"10.0.0.8","action":"block","severity":"high"}'
+  );
   const [resultTab, setResultTab] = useState<'visual' | 'json'>('visual');
 
   // File Upload State
@@ -119,19 +127,44 @@ export const LogIngestionStudio: React.FC<LogIngestionStudioProps> = ({
     if (!batchText.trim()) return;
     setIsProcessing(true);
     setErrorMessage(null);
+    setPipelineStep(1);
     const lines = batchText.split('\n').map((l) => l.trim()).filter(Boolean);
     try {
+      await new Promise((r) => setTimeout(r, 150));
+      setPipelineStep(2);
+      await new Promise((r) => setTimeout(r, 150));
+      setPipelineStep(3);
+
       const results = await onBatchIngest(lines);
+      setPipelineStep(4);
       if (results.length > 0) {
         setLastResult(results[results.length - 1]);
         setEnrichedBatchResults(results);
       }
-      setBatchText('');
     } catch (err: unknown) {
       setErrorMessage(err instanceof Error ? err.message : 'Batch processing failed');
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  const pasteFromClipboard = async (target: 'single' | 'batch') => {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (target === 'single') setLogText(text);
+      else setBatchText(text);
+    } catch {
+      // ignore clipboard permission error
+    }
+  };
+
+  const loadSampleBatch = () => {
+    setBatchText(
+      'src=1.2.3.4 dst=10.5.2.4 action=deny country=CN msg="c2-beacon"\n' +
+      'Aug 31 10:45:00 web-01 sshd[4192]: Failed password for root from 192.168.1.10 port 22\n' +
+      'CEF:0|Palo Alto|PAN-OS|11.0|THREAT|C2|9|src=185.220.101.5 dst=10.0.0.1 action=deny\n' +
+      '{"timestamp":"2026-08-31T11:00:00Z","src_ip":"10.0.0.8","action":"block","severity":"high"}'
+    );
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -253,6 +286,8 @@ export const LogIngestionStudio: React.FC<LogIngestionStudioProps> = ({
   const reputation = lastResult?.threat?.reputation || 'benign';
   const isBlocked = action.includes('deny') || action.includes('block') || action.includes('drop');
 
+  const batchLineCount = batchText.split('\n').filter((l) => l.trim()).length;
+
   return (
     <div className="ingestion-studio-container">
       {/* Studio Header & Mode Tabs */}
@@ -290,11 +325,11 @@ export const LogIngestionStudio: React.FC<LogIngestionStudioProps> = ({
           </div>
         </div>
 
-        {/* Quick Presets (for single/batch modes) */}
+        {/* Quick Presets Bar */}
         {activeMode !== 'file' && (
           <div className="preset-bar">
             <span className="preset-label">
-              <Sparkles size={14} className="text-accent" />
+              <Sparkles size={14} className="text-coral" />
               <span>Load Demo Presets:</span>
             </span>
             <div className="preset-chips">
@@ -307,7 +342,7 @@ export const LogIngestionStudio: React.FC<LogIngestionStudioProps> = ({
                   }}
                   className="preset-chip"
                 >
-                  <span>{p.name}</span>
+                  <span className="preset-chip-name">{p.name}</span>
                   <span className="preset-format-tag">{p.format}</span>
                 </button>
               ))}
@@ -438,69 +473,106 @@ export const LogIngestionStudio: React.FC<LogIngestionStudioProps> = ({
         </div>
       )}
 
-      {/* Main Studio Grid (for Single & Batch modes) */}
+      {/* SINGLE & BATCH INGESTION MODES */}
       {activeMode !== 'file' && (
         <div className="studio-grid">
           {/* Ingestion Editor Box */}
           <div className="glass-panel editor-panel">
+            {/* Editor Action Header */}
             <div className="editor-top-bar">
               <div className="editor-indicator">
-                <FileCode2 size={16} className="text-coral" />
-                <span className="editor-label">Raw Telemetry Input</span>
+                <FileCode2 size={18} className="text-coral" />
+                <span className="editor-label">
+                  {activeMode === 'single' ? 'Single Telemetry Payload' : 'Batch Multi-Line Stream'}
+                </span>
               </div>
-              <span className="format-detect-badge">
-                {detectFormatPreview(activeMode === 'single' ? logText : batchText)}
-              </span>
+
+              <div className="editor-top-controls">
+                <span className="format-detect-badge">
+                  <span className="pulse-dot online" style={{ width: '6px', height: '6px' }} />
+                  <span>{detectFormatPreview(activeMode === 'single' ? logText : batchText)}</span>
+                </span>
+
+                {/* Quick Editor Actions */}
+                <div className="editor-micro-actions">
+                  <button
+                    onClick={() => pasteFromClipboard(activeMode)}
+                    className="micro-btn"
+                    title="Paste from clipboard"
+                  >
+                    <Clipboard size={13} />
+                    <span>Paste</span>
+                  </button>
+                  <button
+                    onClick={() => (activeMode === 'single' ? setLogText('') : setBatchText(''))}
+                    className="micro-btn"
+                    title="Clear editor"
+                  >
+                    <Trash2 size={13} />
+                    <span>Clear</span>
+                  </button>
+                </div>
+              </div>
             </div>
 
+            {/* Editor Textarea */}
             {activeMode === 'single' ? (
-              <textarea
-                className="log-textarea mono"
-                value={logText}
-                onChange={(e) => setLogText(e.target.value)}
-                placeholder="Paste raw Syslog, CEF, LEEF, JSON, or Key-Value security log here..."
-                rows={5}
-              />
+              <div className="modern-editor-wrapper">
+                <textarea
+                  className="log-textarea mono"
+                  value={logText}
+                  onChange={(e) => setLogText(e.target.value)}
+                  placeholder="Paste raw Syslog, CEF, LEEF, JSON, or Key-Value security log here..."
+                  rows={6}
+                />
+                <div className="editor-footer-info">
+                  <span className="editor-stat-chip">
+                    1 Event • {logText.length} Characters
+                  </span>
+                  <span className="editor-hint-chip">
+                    Tip: Press Process Event to trigger canonical pipeline
+                  </span>
+                </div>
+              </div>
             ) : (
-              <div className="batch-editor-wrap">
+              <div className="modern-editor-wrapper">
                 <textarea
                   className="log-textarea mono"
                   value={batchText}
                   onChange={(e) => setBatchText(e.target.value)}
                   placeholder="Paste multiple log lines (one event per line)..."
-                  rows={5}
+                  rows={8}
                 />
-                <div className="file-upload-row">
-                  <label className="btn btn-secondary btn-sm upload-label">
-                    <Upload size={14} />
-                    <span>Upload .log File</span>
-                    <input
-                      type="file"
-                      onChange={handleFileUpload}
-                      accept=".log,.txt,.json,.csv"
-                      style={{ display: 'none' }}
-                    />
-                  </label>
-                  <span className="upload-hint">Upload text, json or syslog format</span>
+                <div className="editor-footer-info">
+                  <span className="editor-stat-chip">
+                    <Layers size={13} />
+                    <span>{batchLineCount} Events in Stream</span>
+                  </span>
+                  <button onClick={loadSampleBatch} className="load-sample-link">
+                    + Load Multi-Vendor Sample
+                  </button>
                 </div>
               </div>
             )}
 
+            {/* Run Button Action */}
             <div className="editor-actions">
               <button
-                className="btn btn-primary btn-run"
+                className="btn btn-primary btn-run-large"
                 onClick={activeMode === 'single' ? handleProcess : handleBatchProcess}
-                disabled={isProcessing}
+                disabled={isProcessing || (activeMode === 'single' ? !logText.trim() : !batchText.trim())}
               >
                 {isProcessing ? (
                   <>
-                    <Activity size={16} className="animate-spin" />
-                    <span>Normalizing &amp; Scoring...</span>
+                    <Activity size={18} className="animate-spin" />
+                    <span>Normalizing &amp; Scoring Stream...</span>
                   </>
                 ) : (
                   <>
-                    <Send size={16} />
-                    <span>{activeMode === 'single' ? 'Process & Normalize Event' : 'Process Batch Stream'}</span>
+                    <Send size={18} />
+                    <span>
+                      {activeMode === 'single' ? '⚡ Process & Normalize Event' : `🚀 Normalize ${batchLineCount} Batch Events`}
+                    </span>
                   </>
                 )}
               </button>
@@ -508,7 +580,7 @@ export const LogIngestionStudio: React.FC<LogIngestionStudioProps> = ({
 
             {errorMessage && (
               <div className="pipeline-error-box">
-                <AlertTriangle size={16} />
+                <AlertTriangle size={18} />
                 <span>{errorMessage}</span>
               </div>
             )}
@@ -528,7 +600,7 @@ export const LogIngestionStudio: React.FC<LogIngestionStudioProps> = ({
                       className={`pipeline-step-item ${isDone ? 'done' : ''} ${isActive ? 'active' : ''}`}
                     >
                       <div className="step-num-circle">
-                        {isDone ? <Check size={12} /> : stepNum}
+                        {isDone ? <Check size={13} /> : stepNum}
                       </div>
                       <div className="step-texts">
                         <span className="step-label">{stg.label}</span>
@@ -548,7 +620,7 @@ export const LogIngestionStudio: React.FC<LogIngestionStudioProps> = ({
           <div className="glass-panel output-panel">
             <div className="output-top-bar">
               <div className="output-title-group">
-                <Shield size={18} className="text-coral" />
+                <Shield size={20} className="text-coral" />
                 <div>
                   <h3 className="output-heading">Post-Normalization Intelligence</h3>
                   <span className="output-sub">Standardized canonical entity structure</span>
@@ -590,7 +662,7 @@ export const LogIngestionStudio: React.FC<LogIngestionStudioProps> = ({
                   <div className="post-kpi-card">
                     <span className="kpi-label">Geo Origin</span>
                     <div className="kpi-value-wrap">
-                      <Globe2 size={14} className="text-cyan" />
+                      <Globe2 size={15} className="text-cyan" />
                       <span className="mono kpi-val-text">{country}</span>
                     </div>
                   </div>
@@ -607,7 +679,7 @@ export const LogIngestionStudio: React.FC<LogIngestionStudioProps> = ({
                   <div className="post-kpi-card">
                     <span className="kpi-label">Engine Latency</span>
                     <div className="kpi-value-wrap">
-                      <Zap size={14} className="text-amber" />
+                      <Zap size={15} className="text-amber" />
                       <span className="mono kpi-val-text">&lt; 1.8ms</span>
                     </div>
                   </div>
@@ -617,7 +689,7 @@ export const LogIngestionStudio: React.FC<LogIngestionStudioProps> = ({
                 <div className="network-flow-card">
                   <div className="flow-node source-node">
                     <div className="node-icon-box">
-                      <Server size={18} />
+                      <Server size={20} />
                     </div>
                     <span className="node-title">Source Host</span>
                     <span className="node-ip mono">{srcIp}</span>
@@ -633,7 +705,7 @@ export const LogIngestionStudio: React.FC<LogIngestionStudioProps> = ({
 
                   <div className="flow-node core-node">
                     <div className="node-icon-box core-icon">
-                      <Shield size={20} />
+                      <Shield size={22} />
                     </div>
                     <span className="node-title">SOC Core Engine</span>
                     <span className={`badge badge-${sev === 'critical' ? 'critical' : sev === 'high' ? 'high' : 'low'}`}>
@@ -651,7 +723,7 @@ export const LogIngestionStudio: React.FC<LogIngestionStudioProps> = ({
 
                   <div className="flow-node dest-node">
                     <div className="node-icon-box">
-                      <Server size={18} />
+                      <Server size={20} />
                     </div>
                     <span className="node-title">Destination Host</span>
                     <span className="node-ip mono">{dstIp}</span>
@@ -668,7 +740,7 @@ export const LogIngestionStudio: React.FC<LogIngestionStudioProps> = ({
                   <span className="json-title mono">Canonical Standard Schema</span>
                   {lastResult && (
                     <button onClick={copyResultJSON} className="btn-copy-json">
-                      {copied ? <Check size={14} /> : <Copy size={14} />}
+                      {copied ? <Check size={14} className="text-emerald" /> : <Copy size={14} />}
                       <span>{copied ? 'Copied' : 'Copy JSON'}</span>
                     </button>
                   )}

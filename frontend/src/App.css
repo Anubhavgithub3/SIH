@@ -1020,85 +1020,150 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .editor-indicator {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.85rem;
-  font-weight: 700;
+  font-size: 0.95rem;
+  font-weight: 800;
   color: var(--text-primary);
 }
 
-.format-detect-badge {
-  font-size: 0.72rem;
-  padding: 3px 8px;
+.editor-top-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.editor-micro-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.micro-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.micro-btn:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-primary);
+  border-color: var(--border-active);
+}
+
+.format-detect-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.76rem;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
   background: var(--support-teal-light);
   color: var(--support-teal);
   border: 1px solid var(--support-teal-subtle);
   font-family: var(--font-mono);
+  font-weight: 700;
+}
+
+.modern-editor-wrapper {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--bg-input);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.modern-editor-wrapper:focus-within {
+  border-color: var(--primary-coral);
+  box-shadow: 0 0 0 3px rgba(242, 159, 103, 0.2);
 }
 
 .log-textarea {
   width: 100%;
-  background: var(--bg-input);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  padding: 14px;
+  background: transparent;
+  border: none;
+  padding: 16px;
   color: var(--text-primary);
-  font-size: 0.82rem;
-  line-height: 1.6;
+  font-size: 0.86rem;
+  line-height: 1.65;
   resize: vertical;
   outline: none;
-  transition: border-color 0.2s ease;
 }
 
-.log-textarea:focus {
-  border-color: var(--border-active);
-  box-shadow: 0 0 0 3px var(--border-glow);
-}
-
-.batch-editor-wrap {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.file-upload-row {
+.editor-footer-info {
   display: flex;
   align-items: center;
-  gap: 12px;
-}
-
-.upload-label {
-  cursor: pointer;
-}
-
-.file-hint {
-  font-size: 0.72rem;
+  justify-content: space-between;
+  padding: 8px 14px;
+  background: var(--bg-subtle);
+  border-top: 1px solid var(--border-subtle);
+  font-size: 0.76rem;
   color: var(--text-muted);
 }
 
-.error-banner {
+.editor-stat-chip {
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: var(--support-red-light);
-  color: var(--support-red);
-  padding: 10px 14px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--support-red-subtle);
-  font-size: 0.78rem;
-  margin-top: 12px;
+  gap: 6px;
+  font-weight: 700;
+  color: var(--text-secondary);
 }
 
-.editor-actions {
-  margin-top: 16px;
-  display: flex;
-  justify-content: flex-end;
+.editor-hint-chip {
+  font-size: 0.74rem;
+}
+
+.load-sample-link {
+  background: transparent;
+  border: none;
+  color: var(--primary-coral);
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.15s ease;
+}
+
+.load-sample-link:hover {
+  text-decoration: underline;
+}
+
+.btn-run-large {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 14px 24px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--primary-coral), #e07a3f);
+  box-shadow: 0 4px 14px rgba(242, 159, 103, 0.35);
+  border-radius: var(--radius-md);
+  margin-top: 14px;
+}
+
+.btn-run-large:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(242, 159, 103, 0.5);
 }
 
 .pipeline-panel {
