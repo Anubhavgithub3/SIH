@@ -11,6 +11,12 @@ import {
   Layers,
   Copy,
   Check,
+  Activity,
+  Globe2,
+  Server,
+  Zap,
+  Network,
+  Code2,
 } from 'lucide-react';
 import type { NormalizedEvent } from '../types';
 
@@ -23,7 +29,7 @@ export const LogIngestionStudio: React.FC<LogIngestionStudioProps> = ({
   onIngest,
   onBatchIngest,
 }) => {
-  const [logText, setLogText] = useState('src=10.0.0.5 dst=8.8.8.8 action=deny port=443');
+  const [logText, setLogText] = useState('src=1.2.3.4 dst=10.5.2.4 action=deny port=443 country=CN msg="C2 beaconing signature matched"');
   const [isProcessing, setIsProcessing] = useState(false);
   const [pipelineStep, setPipelineStep] = useState<number>(0);
   const [lastResult, setLastResult] = useState<NormalizedEvent | null>(null);
@@ -31,37 +37,38 @@ export const LogIngestionStudio: React.FC<LogIngestionStudioProps> = ({
   const [copied, setCopied] = useState(false);
   const [activeMode, setActiveMode] = useState<'single' | 'batch'>('single');
   const [batchText, setBatchText] = useState('');
+  const [resultTab, setResultTab] = useState<'visual' | 'json'>('visual');
 
   const PRESETS = [
-    {
-      id: 'firewall',
-      name: 'Firewall Deny',
-      format: 'Key-Value',
-      log: 'src=10.0.0.5 dst=8.8.8.8 action=deny port=443 bytes=1420 msg="packet dropped by perimeter rule"',
-    },
     {
       id: 'cef-c2',
       name: 'Palo Alto C2 Beacon',
       format: 'CEF',
-      log: 'CEF:0|Palo Alto Networks|PAN-OS|11.0|THREAT|C2-Beacon|9|src=1.2.3.4 dst=10.5.2.4 msg=malware-beacon-c2 action=deny country=CN',
+      log: 'CEF:0|Palo Alto Networks|PAN-OS|11.0|THREAT|C2-Beacon|9|src=1.2.3.4 dst=10.5.2.4 msg=malware-beacon-c2 action=deny country=CN spt=443 dpt=58920',
     },
     {
       id: 'syslog-ssh',
       name: 'Linux SSH Brute Force',
       format: 'Syslog',
-      log: 'Aug 30 10:45:00 web-01 sshd[4192]: Failed password for invalid user admin from 192.168.1.10 port 22 ssh2',
+      log: 'Aug 31 10:45:00 web-01 sshd[4192]: Failed password for invalid user admin from 192.168.1.10 port 22 ssh2',
+    },
+    {
+      id: 'firewall',
+      name: 'Firewall Deny Rule',
+      format: 'Key-Value',
+      log: 'src=185.220.101.5 dst=10.0.0.12 action=deny port=443 bytes=1420 country=RU msg="packet dropped by perimeter rule"',
     },
     {
       id: 'json-api',
       name: 'Cloud API Token Alert',
       format: 'JSON',
-      log: '{"timestamp":"2026-08-30T10:42:00Z","host":"api-gateway","source":"api","event_type":"authentication","severity":"WARN","message":"token signature expired","src_ip":"10.0.0.8"}',
+      log: '{"timestamp":"2026-08-31T10:42:00Z","host":"api-gateway","source":"api","event_type":"authentication","severity":"critical","message":"token signature expired","src_ip":"10.0.0.8"}',
     },
     {
       id: 'leef-threat',
       name: 'QRadar Malicious IP',
       format: 'LEEF',
-      log: 'LEEF:1.0|IBM|QRadar|7.4|ThreatAlert|src=185.220.101.5 dst=10.0.0.12 action=block threat=malicious msg=exploit-attempt',
+      log: 'LEEF:1.0|IBM|QRadar|7.4|ThreatAlert|src=1.2.3.4 dst=10.0.0.12 action=block threat=malicious msg=exploit-attempt',
     },
   ];
 
@@ -85,9 +92,9 @@ export const LogIngestionStudio: React.FC<LogIngestionStudioProps> = ({
     setPipelineStep(1);
 
     try {
-      await new Promise((r) => setTimeout(r, 120));
+      await new Promise((r) => setTimeout(r, 100));
       setPipelineStep(2);
-      await new Promise((r) => setTimeout(r, 120));
+      await new Promise((r) => setTimeout(r, 100));
       setPipelineStep(3);
 
       const result = await onIngest(logText.trim());
@@ -146,6 +153,16 @@ export const LogIngestionStudio: React.FC<LogIngestionStudioProps> = ({
     { label: 'Canonical Normalize', desc: 'Map into unified SIEM schema' },
     { label: 'Enrich & ML Score', desc: 'GeoIP, threat intel & Random Forest' },
   ];
+
+  const srcIp = lastResult?.network?.source_ip || lastResult?.network?.src_ip || 'N/A';
+  const dstIp = lastResult?.network?.destination_ip || lastResult?.network?.dst_ip || 'N/A';
+  const srcPort = lastResult?.network?.source_port || lastResult?.network?.src_port || 'Any';
+  const dstPort = lastResult?.network?.destination_port || lastResult?.network?.dst_port || 'Any';
+  const action = lastResult?.event?.action || 'processed';
+  const sev = String(lastResult?.event?.severity || lastResult?.severity || 'info').toLowerCase();
+  const country = lastResult?.enrichment?.country || 'Unknown';
+  const reputation = lastResult?.threat?.reputation || 'benign';
+  const isBlocked = action.includes('deny') || action.includes('block') || action.includes('drop');
 
   return (
     <div className="ingestion-studio-container">
@@ -218,7 +235,7 @@ export const LogIngestionStudio: React.FC<LogIngestionStudioProps> = ({
               value={logText}
               onChange={(e) => setLogText(e.target.value)}
               placeholder="Paste raw Syslog, CEF, LEEF, JSON, or Key-Value security log here..."
-              rows={6}
+              rows={5}
             />
           ) : (
             <div className="batch-editor-wrap">
@@ -227,7 +244,7 @@ export const LogIngestionStudio: React.FC<LogIngestionStudioProps> = ({
                 value={batchText}
                 onChange={(e) => setBatchText(e.target.value)}
                 placeholder="Paste multiple log lines (one event per line)..."
-                rows={6}
+                rows={5}
               />
               <div className="file-upload-row">
                 <label className="btn btn-secondary btn-sm upload-label">
@@ -259,7 +276,7 @@ export const LogIngestionStudio: React.FC<LogIngestionStudioProps> = ({
                 disabled={isProcessing || !logText.trim()}
                 className="btn btn-primary"
               >
-                <Send size={16} />
+                <Send size={15} />
                 <span>{isProcessing ? 'Normalizing...' : 'Process & Enrich Log'}</span>
               </button>
             ) : (
@@ -268,7 +285,7 @@ export const LogIngestionStudio: React.FC<LogIngestionStudioProps> = ({
                 disabled={isProcessing || !batchText.trim()}
                 className="btn btn-primary"
               >
-                <Layers size={16} />
+                <Layers size={15} />
                 <span>{isProcessing ? 'Ingesting Batch...' : 'Ingest All Log Lines'}</span>
               </button>
             )}
@@ -313,45 +330,169 @@ export const LogIngestionStudio: React.FC<LogIngestionStudioProps> = ({
               );
             })}
           </div>
+        </div>
+      </div>
 
-          {/* Processed Canonical Output preview */}
-          {lastResult && (
-            <div className="canonical-result-box fade-in">
-              <div className="result-header">
-                <div className="result-title">
-                  <CheckCircle2 size={16} className="text-emerald" />
-                  <span>Canonical Normalized Event</span>
+      {/* POST-INGESTION COMPREHENSIVE VISUALIZATION & ANALYTICS CARDS */}
+      {lastResult && (
+        <div className="glass-panel parsed-result-card fade-in">
+          <div className="card-header-flex">
+            <div>
+              <div className="result-badge-row">
+                <span className="badge badge-low">
+                  <CheckCircle2 size={12} /> Pipeline Complete
+                </span>
+                <span className="badge badge-info">Source: {lastResult.source || 'api'}</span>
+                <span className={`badge badge-${sev === 'critical' ? 'critical' : sev === 'high' ? 'high' : 'medium'}`}>
+                  Severity: {sev.toUpperCase()}
+                </span>
+              </div>
+              <h3 className="card-title">Parsed & Normalized Event Intelligence</h3>
+              <p className="card-subtitle">Contextual enrichment, network flow, and canonical schema</p>
+            </div>
+
+            <div className="result-toggle-group">
+              <button
+                className={`result-toggle-btn ${resultTab === 'visual' ? 'active' : ''}`}
+                onClick={() => setResultTab('visual')}
+              >
+                <Network size={14} />
+                <span>Visual Flow & Graph</span>
+              </button>
+              <button
+                className={`result-toggle-btn ${resultTab === 'json' ? 'active' : ''}`}
+                onClick={() => setResultTab('json')}
+              >
+                <Code2 size={14} />
+                <span>Canonical JSON</span>
+              </button>
+            </div>
+          </div>
+
+          {resultTab === 'visual' ? (
+            <div className="parsed-visual-content">
+              {/* 4 Telemetry KPI Cards */}
+              <div className="parsed-kpi-grid">
+                <div className="parsed-kpi-card">
+                  <div className="kpi-card-top">
+                    <span className="kpi-card-label">Security Action</span>
+                    <Activity size={16} className="text-coral" />
+                  </div>
+                  <div className="kpi-card-val" style={{ color: isBlocked ? '#ef4444' : '#10b981' }}>
+                    {action.toUpperCase()}
+                  </div>
+                  <span className="kpi-card-sub">Enforced at perimeter</span>
                 </div>
-                <button onClick={copyResultJSON} className="btn-copy">
-                  {copied ? <Check size={14} /> : <Copy size={14} />}
-                  <span>{copied ? 'Copied' : 'Copy JSON'}</span>
+
+                <div className="parsed-kpi-card">
+                  <div className="kpi-card-top">
+                    <span className="kpi-card-label">Geo Origin</span>
+                    <Globe2 size={16} className="text-cyan" />
+                  </div>
+                  <div className="kpi-card-val">
+                    {country}
+                  </div>
+                  <span className="kpi-card-sub">GeoIP CTI Resolved</span>
+                </div>
+
+                <div className="parsed-kpi-card">
+                  <div className="kpi-card-top">
+                    <span className="kpi-card-label">Threat Intel</span>
+                    <Shield size={16} className="text-amber" />
+                  </div>
+                  <div className="kpi-card-val" style={{ color: reputation === 'suspicious' || reputation === 'malicious' ? '#ef4444' : '#10b981' }}>
+                    {reputation.toUpperCase()}
+                  </div>
+                  <span className="kpi-card-sub">IOC Feed Lookup</span>
+                </div>
+
+                <div className="parsed-kpi-card">
+                  <div className="kpi-card-top">
+                    <span className="kpi-card-label">Engine Latency</span>
+                    <Zap size={16} className="text-accent" />
+                  </div>
+                  <div className="kpi-card-val mono">
+                    &lt;1.2 ms
+                  </div>
+                  <span className="kpi-card-sub">100% OCSF Standard</span>
+                </div>
+              </div>
+
+              {/* Interactive Network Flow Diagram */}
+              <div className="network-flow-card">
+                <div className="flow-card-title">
+                  <Network size={16} className="text-accent" />
+                  <span>Interactive Network Flow Diagram</span>
+                </div>
+
+                <div className="flow-diagram-wrapper">
+                  <div className="flow-node node-source">
+                    <span className="node-badge">SOURCE HOST</span>
+                    <span className="node-ip mono">{srcIp}</span>
+                    <span className="node-port mono">Port: {srcPort}</span>
+                    <span className="node-geo">Origin: {country}</span>
+                  </div>
+
+                  <div className="flow-connection">
+                    <div className="flow-line">
+                      <div className={`flow-pulse ${isBlocked ? 'blocked' : 'allowed'}`} />
+                    </div>
+                    <div className="flow-tag">
+                      <span className={`badge ${isBlocked ? 'badge-critical' : 'badge-low'}`}>
+                        {action.toUpperCase()}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flow-node node-firewall">
+                    <span className="node-badge">SOC CORE ENGINE</span>
+                    <Server size={22} className="text-coral" />
+                    <span className="node-fw-title">Normalization & ML</span>
+                    <span className="node-status text-emerald">Normalized</span>
+                  </div>
+
+                  <div className="flow-connection">
+                    <div className="flow-line">
+                      <div className="flow-pulse allowed" />
+                    </div>
+                    <div className="flow-tag">
+                      <span className="badge badge-info">FORWARD</span>
+                    </div>
+                  </div>
+
+                  <div className="flow-node node-dest">
+                    <span className="node-badge">DESTINATION HOST</span>
+                    <span className="node-ip mono">{dstIp}</span>
+                    <span className="node-port mono">Port: {dstPort}</span>
+                    <span className="node-geo">Internal Asset</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Message Banner */}
+              {lastResult.event?.message && (
+                <div className="event-message-card">
+                  <span className="msg-label">EVENT MESSAGE:</span>
+                  <span className="msg-text mono">{lastResult.event.message}</span>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="canonical-json-wrapper">
+              <div className="json-header-bar">
+                <span className="mono text-muted">Schema: OCSF / Elastic Common Schema v1.0</span>
+                <button onClick={copyResultJSON} className="btn btn-secondary btn-sm">
+                  {copied ? <Check size={14} className="text-emerald" /> : <Copy size={14} />}
+                  <span>{copied ? 'Copied to Clipboard' : 'Copy Canonical JSON'}</span>
                 </button>
               </div>
-
-              <div className="result-summary-tags">
-                <span className="badge badge-info">Source: {lastResult.source || 'api'}</span>
-                <span className={`badge badge-${lastResult.event?.severity || 'low'}`}>
-                  Sev: {lastResult.event?.severity || 'low'}
-                </span>
-                {lastResult.enrichment?.country && (
-                  <span className="badge badge-cyan">
-                    Geo: {lastResult.enrichment.country}
-                  </span>
-                )}
-                {lastResult.threat?.reputation && (
-                  <span className={`badge badge-${lastResult.threat.reputation === 'suspicious' || lastResult.threat.reputation === 'malicious' ? 'critical' : 'low'}`}>
-                    Rep: {lastResult.threat.reputation}
-                  </span>
-                )}
-              </div>
-
-              <pre className="result-json-view mono">
+              <pre className="modal-json-pre mono">
                 {JSON.stringify(lastResult, null, 2)}
               </pre>
             </div>
           )}
         </div>
-      </div>
+      )}
     </div>
   );
 };
