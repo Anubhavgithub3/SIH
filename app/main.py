@@ -3,7 +3,7 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -309,15 +309,38 @@ def process_log_payload(raw_text: str):
 
 def process_log_file(file_path: str):
     raw_text = read_log_file(file_path)
+    file_name = Path(file_path).name
+    audit_info = audit_and_backup_raw_log(raw_text, source=f"file:{file_name}")
+
+    fmt = detect_format(raw_text)
+    is_unknown_fmt = fmt == 'unknown'
+    has_exploit_sig = any(
+        kw in raw_text.lower() for kw in ['<script', 'select *', 'union select', 'drop table', 'chmod 777', 'eval(', '../../etc/passwd']
+    )
+
+    quarantine_info = None
+    if is_unknown_fmt or has_exploit_sig:
+        reason = 'UNRECOGNIZED_LOG_TAXONOMY' if is_unknown_fmt else 'MALICIOUS_EXPLOIT_PAYLOAD'
+        quarantine_info = quarantine_payload(raw_text, reason=reason, risk_score=0.95 if has_exploit_sig else 0.85, source='file')
+
     parsed_events = _parse_raw(raw_text)
     normalized = []
     for event in parsed_events:
         normal = normalize_event(event, source='file')
         normal = enrich_geoip(normal)
         normal = enrich_threat_intel(normal)
+        normal['audit'] = audit_info
+        if quarantine_info:
+            normal['quarantine'] = quarantine_info
         if normal.get('event', {}).get('message') or normal.get('metadata'):
             normalized.append(normal)
-    return validate_events(normalized)
+
+    valid = validate_events(normalized)
+    for v in valid:
+        v['audit'] = audit_info
+        if quarantine_info and 'quarantine' not in v:
+            v['quarantine'] = quarantine_info
+    return valid
 
 
 @app.get('/')
@@ -1610,6 +1633,12 @@ def ingest_log(payload: dict):
 def ingest_batch_logs(payload: dict):
     logs = payload.get('logs') or []
     results = []
+
+    # SHA-256 Audit Backup for the complete file/batch stream
+    full_text = "\n".join(l for l in logs if isinstance(l, str) and l.strip())
+    if full_text:
+        audit_and_backup_raw_log(full_text, source='file_batch_upload')
+
     for raw_log in logs:
         if isinstance(raw_log, str) and raw_log.strip():
             results.append(process_log_payload(raw_log.strip()))

@@ -1,0 +1,18 @@
+[
+  {
+    "timestamp": "2026-08-28T10:15:00Z",
+    "host": "web-01",
+    "source": "api",
+    "event_type": "authentication",
+    "severity": "INFO",
+    "message": "login success"
+  },
+  {
+    "timestamp": "2026-08-28T10:16:00Z",
+    "host": "web-02",
+    "source": "api",
+    "event_type": "authorization",
+    "severity": "WARN",
+    "message": "token expired"
+  }
+]

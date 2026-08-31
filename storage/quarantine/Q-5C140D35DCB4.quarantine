@@ -1,0 +1,11 @@
+{
+  "quarantine_id": "Q-5C140D35DCB4",
+  "sha256_hash": "5c140d35dcb46a622e2cedf5ef5cc3638cdffd1c118c9331f8c84669f0b74783",
+  "quarantined_at": "2026-08-31T10:21:33.919069+00:00",
+  "reason": "UNRECOGNIZED_LOG_TAXONOMY",
+  "risk_score": 0.95,
+  "source": "file",
+  "raw_payload": "<script>alert(1)</script>",
+  "status": "ISOLATED",
+  "file_path": "/home/shikhar/Documents/aws/SIH/storage/quarantine/Q-5C140D35DCB4.quarantine"
+}

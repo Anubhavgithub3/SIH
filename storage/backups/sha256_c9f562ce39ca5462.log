@@ -1,0 +1,200 @@
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"185.220.101.5","dst_ip":"10.0.8.136","src_port":61655,"dst_port":53,"action":"allow","severity":"info","proto":"TCP","message":"standard network ingress"}
+Aug 31 12:00:00 srv-01 systemd[5828]: Successful connection from 77.88.55.66 port 45719 to 10.0.5.168 port 8443
+CEF:0|Palo Alto Networks|PAN-OS|11.0|TRAFFIC|Session-Start|3|src=95.173.136.1 dst=10.0.7.6 spt=56960 dpt=53 proto=UDP action=allow msg="clean connection traffic"
+CEF:0|Palo Alto Networks|PAN-OS|11.0|TRAFFIC|Session-Start|3|src=117.192.0.1 dst=10.0.5.17 spt=55194 dpt=8080 proto=UDP action=allow msg="clean connection traffic"
+src=27.115.1.5 dst=10.0.10.102 spt=40607 dpt=53 proto=TCP action=allow bytes=38002 duration=285ms msg="network session established"
+src=1.2.3.4 dst=10.0.8.219 spt=9655 dpt=3306 proto=UDP action=allow bytes=5759 duration=107ms msg="network session established"
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"103.21.244.5","dst_ip":"10.0.4.252","src_port":53222,"dst_port":8443,"action":"allow","severity":"info","proto":"TCP","message":"standard network ingress"}
+Aug 31 12:00:00 srv-01 systemd[4350]: Successful connection from 52.90.4.1 port 8090 to 10.0.5.117 port 8080
+CEF:0|Palo Alto Networks|PAN-OS|11.0|TRAFFIC|Session-Start|3|src=27.115.1.5 dst=10.0.3.166 spt=51711 dpt=443 proto=TCP action=allow msg="clean connection traffic"
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"45.33.10.8","dst_ip":"10.0.8.239","src_port":23201,"dst_port":3306,"action":"allow","severity":"info","proto":"UDP","message":"standard network ingress"}
+CEF:0|Palo Alto Networks|PAN-OS|11.0|TRAFFIC|Session-Start|3|src=159.69.1.5 dst=10.0.8.194 spt=23456 dpt=8443 proto=TCP action=allow msg="clean connection traffic"
+Aug 31 12:00:00 srv-06 systemd[8549]: Successful connection from 45.33.10.8 port 25369 to 10.0.1.133 port 80
+CEF:0|Palo Alto Networks|PAN-OS|11.0|TRAFFIC|Session-Start|3|src=91.210.1.5 dst=10.0.6.168 spt=37403 dpt=80 proto=TCP action=allow msg="clean connection traffic"
+CEF:0|Palo Alto Networks|PAN-OS|11.0|TRAFFIC|Session-Start|3|src=85.118.0.12 dst=10.0.5.127 spt=10126 dpt=22 proto=UDP action=allow msg="clean connection traffic"
+src=210.140.1.5 dst=10.0.5.193 spt=44730 dpt=53 proto=UDP action=allow bytes=52366 duration=83ms msg="network session established"
+src=103.21.244.5 dst=10.0.10.251 spt=18991 dpt=8080 proto=TCP action=allow bytes=6792 duration=191ms msg="network session established"
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"1.2.3.4","dst_ip":"10.0.1.37","src_port":2675,"dst_port":53,"action":"allow","severity":"info","proto":"TCP","message":"standard network ingress"}
+CEF:0|Palo Alto Networks|PAN-OS|11.0|TRAFFIC|Session-Start|3|src=191.96.1.5 dst=10.0.10.52 spt=15021 dpt=8080 proto=TCP action=allow msg="clean connection traffic"
+CEF:0|Palo Alto Networks|PAN-OS|11.0|TRAFFIC|Session-Start|3|src=91.210.1.5 dst=10.0.8.41 spt=26671 dpt=53 proto=TCP action=allow msg="clean connection traffic"
+Aug 31 12:00:00 srv-04 systemd[2322]: Successful connection from 85.118.0.12 port 21864 to 10.0.5.127 port 53
+Aug 31 12:00:00 srv-04 systemd[9109]: Successful connection from 103.21.244.5 port 44354 to 10.0.7.70 port 3306
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"210.140.1.5","dst_ip":"10.0.4.223","src_port":4186,"dst_port":8080,"action":"allow","severity":"info","proto":"UDP","message":"standard network ingress"}
+src=178.62.0.1 dst=10.0.6.140 spt=55170 dpt=8443 proto=UDP action=allow bytes=42601 duration=63ms msg="network session established"
+Aug 31 12:00:00 srv-02 systemd[5869]: Successful connection from 8.8.8.8 port 51644 to 10.0.7.137 port 22
+CEF:0|Palo Alto Networks|PAN-OS|11.0|TRAFFIC|Session-Start|3|src=1.14.0.5 dst=10.0.8.249 spt=33673 dpt=53 proto=UDP action=allow msg="clean connection traffic"
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"85.118.0.12","dst_ip":"10.0.7.112","src_port":60124,"dst_port":8080,"action":"allow","severity":"info","proto":"UDP","message":"standard network ingress"}
+src=45.33.10.8 dst=10.0.4.6 spt=60825 dpt=3306 proto=UDP action=allow bytes=28150 duration=418ms msg="network session established"
+CEF:0|Palo Alto Networks|PAN-OS|11.0|TRAFFIC|Session-Start|3|src=52.90.4.1 dst=10.0.10.128 spt=23619 dpt=8443 proto=UDP action=allow msg="clean connection traffic"
+CEF:0|Palo Alto Networks|PAN-OS|11.0|TRAFFIC|Session-Start|3|src=198.51.100.23 dst=10.0.3.171 spt=28987 dpt=443 proto=UDP action=allow msg="clean connection traffic"
+CEF:0|Palo Alto Networks|PAN-OS|11.0|TRAFFIC|Session-Start|3|src=178.62.0.1 dst=10.0.4.189 spt=6168 dpt=8443 proto=UDP action=allow msg="clean connection traffic"
+src=159.69.1.5 dst=10.0.6.151 spt=47104 dpt=8443 proto=TCP action=allow bytes=14919 duration=215ms msg="network session established"
+Aug 31 12:00:00 srv-02 systemd[7340]: Successful connection from 8.8.8.8 port 57168 to 10.0.6.253 port 80
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"117.192.0.1","dst_ip":"10.0.6.47","src_port":35156,"dst_port":443,"action":"allow","severity":"info","proto":"TCP","message":"standard network ingress"}
+CEF:0|Palo Alto Networks|PAN-OS|11.0|TRAFFIC|Session-Start|3|src=14.139.1.5 dst=10.0.2.12 spt=15299 dpt=443 proto=UDP action=allow msg="clean connection traffic"
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"202.12.27.33","dst_ip":"10.0.1.216","src_port":35792,"dst_port":443,"action":"allow","severity":"info","proto":"TCP","message":"standard network ingress"}
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"185.220.101.5","dst_ip":"10.0.2.126","src_port":15065,"dst_port":443,"action":"allow","severity":"info","proto":"UDP","message":"standard network ingress"}
+src=117.192.0.1 dst=10.0.6.199 spt=5869 dpt=8080 proto=UDP action=allow bytes=46054 duration=65ms msg="network session established"
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"8.8.8.8","dst_ip":"10.0.7.187","src_port":25917,"dst_port":8080,"action":"allow","severity":"info","proto":"TCP","message":"standard network ingress"}
+src=178.62.0.1 dst=10.0.5.151 spt=6825 dpt=3306 proto=UDP action=allow bytes=25431 duration=286ms msg="network session established"
+src=1.14.0.5 dst=10.0.5.188 spt=63988 dpt=80 proto=TCP action=allow bytes=20513 duration=174ms msg="network session established"
+CEF:0|Palo Alto Networks|PAN-OS|11.0|TRAFFIC|Session-Start|3|src=95.173.136.1 dst=10.0.5.62 spt=33684 dpt=8443 proto=UDP action=allow msg="clean connection traffic"
+src=165.227.1.5 dst=10.0.7.120 spt=55667 dpt=53 proto=UDP action=allow bytes=10124 duration=142ms msg="network session established"
+CEF:0|Palo Alto Networks|PAN-OS|11.0|TRAFFIC|Session-Start|3|src=117.192.0.1 dst=10.0.0.171 spt=48583 dpt=80 proto=TCP action=allow msg="clean connection traffic"
+Aug 31 12:00:00 srv-06 systemd[2647]: Successful connection from 210.140.1.5 port 44605 to 10.0.1.55 port 3306
+src=85.118.0.12 dst=10.0.2.47 spt=31769 dpt=8443 proto=TCP action=allow bytes=3868 duration=186ms msg="network session established"
+CEF:0|Palo Alto Networks|PAN-OS|11.0|TRAFFIC|Session-Start|3|src=210.140.1.5 dst=10.0.9.223 spt=53853 dpt=8080 proto=UDP action=allow msg="clean connection traffic"
+Aug 31 12:00:00 srv-04 systemd[2230]: Successful connection from 165.227.1.5 port 43043 to 10.0.10.161 port 53
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"34.201.5.12","dst_ip":"10.0.8.131","src_port":21055,"dst_port":53,"action":"allow","severity":"info","proto":"UDP","message":"standard network ingress"}
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"122.160.1.5","dst_ip":"10.0.5.163","src_port":2880,"dst_port":8443,"action":"allow","severity":"info","proto":"TCP","message":"standard network ingress"}
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"151.106.0.1","dst_ip":"10.0.5.158","src_port":64752,"dst_port":80,"action":"allow","severity":"info","proto":"UDP","message":"standard network ingress"}
+Aug 31 12:00:00 srv-01 systemd[4796]: Successful connection from 159.69.1.5 port 31037 to 10.0.1.108 port 22
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"34.201.5.12","dst_ip":"10.0.10.170","src_port":35701,"dst_port":8443,"action":"allow","severity":"info","proto":"TCP","message":"standard network ingress"}
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"85.118.0.12","dst_ip":"10.0.1.22","src_port":59810,"dst_port":8443,"action":"allow","severity":"info","proto":"UDP","message":"standard network ingress"}
+Aug 31 12:00:00 srv-05 systemd[7042]: Successful connection from 45.33.10.8 port 17342 to 10.0.1.40 port 3306
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"45.33.10.8","dst_ip":"10.0.7.16","src_port":36164,"dst_port":80,"action":"allow","severity":"info","proto":"TCP","message":"standard network ingress"}
+Aug 31 12:00:00 srv-08 systemd[7625]: Successful connection from 217.70.1.5 port 61190 to 10.0.10.11 port 443
+src=45.33.10.8 dst=10.0.0.8 spt=5496 dpt=3306 proto=TCP action=allow bytes=42057 duration=418ms msg="network session established"
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"45.33.10.8","dst_ip":"10.0.7.38","src_port":14882,"dst_port":53,"action":"allow","severity":"info","proto":"UDP","message":"standard network ingress"}
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"185.220.101.5","dst_ip":"10.0.7.59","src_port":21326,"dst_port":53,"action":"allow","severity":"info","proto":"UDP","message":"standard network ingress"}
+src=217.70.1.5 dst=10.0.2.147 spt=23478 dpt=8080 proto=TCP action=allow bytes=14900 duration=75ms msg="network session established"
+src=191.96.1.5 dst=10.0.5.20 spt=17509 dpt=3306 proto=UDP action=allow bytes=46550 duration=344ms msg="network session established"
+src=202.12.27.33 dst=10.0.8.193 spt=38295 dpt=53 proto=UDP action=allow bytes=50047 duration=75ms msg="network session established"
+Aug 31 12:00:00 srv-10 systemd[7515]: Successful connection from 185.220.101.5 port 15649 to 10.0.8.200 port 8443
+Aug 31 12:00:00 srv-03 systemd[2976]: Successful connection from 165.227.1.5 port 51774 to 10.0.3.102 port 8080
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"103.21.244.5","dst_ip":"10.0.4.31","src_port":60336,"dst_port":443,"action":"allow","severity":"info","proto":"UDP","message":"standard network ingress"}
+src=191.96.1.5 dst=10.0.8.160 spt=63709 dpt=443 proto=UDP action=allow bytes=21068 duration=160ms msg="network session established"
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"217.70.1.5","dst_ip":"10.0.5.121","src_port":5769,"dst_port":80,"action":"allow","severity":"info","proto":"TCP","message":"standard network ingress"}
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"115.240.1.8","dst_ip":"10.0.3.131","src_port":47309,"dst_port":3306,"action":"allow","severity":"info","proto":"TCP","message":"standard network ingress"}
+Aug 31 12:00:00 srv-06 systemd[2268]: Successful connection from 151.106.0.1 port 13004 to 10.0.8.33 port 53
+src=117.192.0.1 dst=10.0.2.250 spt=49787 dpt=8080 proto=UDP action=allow bytes=44180 duration=100ms msg="network session established"
+src=159.69.1.5 dst=10.0.6.103 spt=6599 dpt=8080 proto=UDP action=allow bytes=53196 duration=210ms msg="network session established"
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"117.192.0.1","dst_ip":"10.0.9.187","src_port":31599,"dst_port":53,"action":"allow","severity":"info","proto":"TCP","message":"standard network ingress"}
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"34.201.5.12","dst_ip":"10.0.5.173","src_port":22246,"dst_port":80,"action":"allow","severity":"info","proto":"TCP","message":"standard network ingress"}
+Aug 31 12:00:00 srv-09 systemd[8979]: Successful connection from 191.96.1.5 port 27325 to 10.0.7.51 port 3306
+CEF:0|Palo Alto Networks|PAN-OS|11.0|TRAFFIC|Session-Start|3|src=202.12.27.33 dst=10.0.10.223 spt=24479 dpt=443 proto=UDP action=allow msg="clean connection traffic"
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"8.8.8.8","dst_ip":"10.0.5.28","src_port":1108,"dst_port":3306,"action":"allow","severity":"info","proto":"TCP","message":"standard network ingress"}
+Aug 31 12:00:00 srv-04 systemd[7912]: Successful connection from 202.12.27.33 port 40954 to 10.0.2.162 port 8080
+src=142.93.1.5 dst=10.0.1.190 spt=2885 dpt=8443 proto=UDP action=allow bytes=23039 duration=344ms msg="network session established"
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"34.201.5.12","dst_ip":"10.0.6.37","src_port":14311,"dst_port":53,"action":"allow","severity":"info","proto":"UDP","message":"standard network ingress"}
+src=151.106.0.1 dst=10.0.3.28 spt=43394 dpt=22 proto=UDP action=allow bytes=55995 duration=53ms msg="network session established"
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"202.12.27.33","dst_ip":"10.0.9.20","src_port":40657,"dst_port":3306,"action":"allow","severity":"info","proto":"UDP","message":"standard network ingress"}
+Aug 31 12:00:00 srv-04 systemd[1570]: Successful connection from 151.106.0.1 port 30098 to 10.0.5.176 port 8080
+CEF:0|Palo Alto Networks|PAN-OS|11.0|TRAFFIC|Session-Start|3|src=91.210.1.5 dst=10.0.2.190 spt=7314 dpt=3306 proto=TCP action=allow msg="clean connection traffic"
+src=14.139.1.5 dst=10.0.4.153 spt=27446 dpt=53 proto=UDP action=allow bytes=30555 duration=426ms msg="network session established"
+CEF:0|Palo Alto Networks|PAN-OS|11.0|TRAFFIC|Session-Start|3|src=188.166.1.5 dst=10.0.7.92 spt=27497 dpt=22 proto=UDP action=allow msg="clean connection traffic"
+src=142.93.1.5 dst=10.0.3.58 spt=32515 dpt=8080 proto=TCP action=allow bytes=61653 duration=58ms msg="network session established"
+Aug 31 12:00:00 srv-01 systemd[2159]: Successful connection from 14.139.1.5 port 51221 to 10.0.10.194 port 80
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"91.210.1.5","dst_ip":"10.0.9.52","src_port":62595,"dst_port":3306,"action":"allow","severity":"info","proto":"TCP","message":"standard network ingress"}
+src=27.115.1.5 dst=10.0.7.33 spt=54445 dpt=22 proto=TCP action=allow bytes=36333 duration=235ms msg="network session established"
+src=217.70.1.5 dst=10.0.9.230 spt=60543 dpt=443 proto=TCP action=allow bytes=18163 duration=406ms msg="network session established"
+CEF:0|Palo Alto Networks|PAN-OS|11.0|TRAFFIC|Session-Start|3|src=159.69.1.5 dst=10.0.7.160 spt=44297 dpt=3306 proto=TCP action=allow msg="clean connection traffic"
+src=27.115.1.5 dst=10.0.5.116 spt=15772 dpt=22 proto=UDP action=allow bytes=61362 duration=95ms msg="network session established"
+Aug 31 12:00:00 srv-06 systemd[2627]: Successful connection from 52.90.4.1 port 40981 to 10.0.6.86 port 22
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"151.106.0.1","dst_ip":"10.0.10.75","src_port":8763,"dst_port":53,"action":"allow","severity":"info","proto":"TCP","message":"standard network ingress"}
+src=159.69.1.5 dst=10.0.5.24 spt=60471 dpt=443 proto=UDP action=allow bytes=28987 duration=99ms msg="network session established"
+Aug 31 12:00:00 srv-04 systemd[3370]: Successful connection from 1.2.3.4 port 64378 to 10.0.1.60 port 80
+src=103.21.244.5 dst=10.0.7.167 spt=10881 dpt=53 proto=UDP action=allow bytes=63329 duration=248ms msg="network session established"
+Aug 31 12:00:00 srv-04 systemd[7955]: Successful connection from 198.51.100.23 port 22215 to 10.0.3.118 port 3306
+src=95.173.136.1 dst=10.0.6.240 spt=60515 dpt=8443 proto=UDP action=allow bytes=30481 duration=286ms msg="network session established"
+Aug 31 12:00:00 srv-09 systemd[9426]: Successful connection from 77.88.55.66 port 36464 to 10.0.2.220 port 8443
+src=117.192.0.1 dst=10.0.4.79 spt=60956 dpt=3306 proto=TCP action=allow bytes=1403 duration=296ms msg="network session established"
+Aug 31 12:00:00 srv-06 systemd[1374]: Successful connection from 178.62.0.1 port 55685 to 10.0.1.160 port 3306
+CEF:0|Palo Alto Networks|PAN-OS|11.0|TRAFFIC|Session-Start|3|src=85.118.0.12 dst=10.0.10.194 spt=50219 dpt=443 proto=UDP action=allow msg="clean connection traffic"
+src=188.166.1.5 dst=10.0.10.23 spt=23954 dpt=8443 proto=UDP action=allow bytes=17558 duration=181ms msg="network session established"
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"188.166.1.5","dst_ip":"10.0.0.108","src_port":1489,"dst_port":53,"action":"allow","severity":"info","proto":"UDP","message":"standard network ingress"}
+Aug 31 12:00:00 srv-02 systemd[3230]: Successful connection from 85.118.0.12 port 38168 to 10.0.1.21 port 8080
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"115.240.1.8","dst_ip":"10.0.0.70","src_port":34112,"dst_port":8443,"action":"allow","severity":"info","proto":"UDP","message":"standard network ingress"}
+src=77.88.55.66 dst=10.0.8.228 spt=53682 dpt=53 proto=TCP action=allow bytes=29315 duration=84ms msg="network session established"
+CEF:0|Palo Alto Networks|PAN-OS|11.0|TRAFFIC|Session-Start|3|src=34.201.5.12 dst=10.0.7.149 spt=59485 dpt=80 proto=TCP action=allow msg="clean connection traffic"
+Aug 31 12:00:00 srv-09 systemd[1704]: Successful connection from 142.93.1.5 port 47506 to 10.0.3.74 port 22
+src=27.115.1.5 dst=10.0.0.151 spt=37227 dpt=22 proto=TCP action=allow bytes=31260 duration=417ms msg="network session established"
+CEF:0|Palo Alto Networks|PAN-OS|11.0|TRAFFIC|Session-Start|3|src=115.240.1.8 dst=10.0.7.74 spt=35860 dpt=8443 proto=UDP action=allow msg="clean connection traffic"
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"165.227.1.5","dst_ip":"10.0.9.220","src_port":5321,"dst_port":8443,"action":"allow","severity":"info","proto":"TCP","message":"standard network ingress"}
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"142.93.1.5","dst_ip":"10.0.7.253","src_port":30623,"dst_port":443,"action":"allow","severity":"info","proto":"TCP","message":"standard network ingress"}
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"117.192.0.1","dst_ip":"10.0.10.211","src_port":63074,"dst_port":443,"action":"allow","severity":"info","proto":"UDP","message":"standard network ingress"}
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"191.96.1.5","dst_ip":"10.0.3.240","src_port":1222,"dst_port":443,"action":"allow","severity":"info","proto":"UDP","message":"standard network ingress"}
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"45.33.10.8","dst_ip":"10.0.2.165","src_port":61645,"dst_port":53,"action":"allow","severity":"info","proto":"TCP","message":"standard network ingress"}
+src=14.139.1.5 dst=10.0.9.114 spt=38929 dpt=8443 proto=UDP action=allow bytes=32193 duration=113ms msg="network session established"
+CEF:0|Palo Alto Networks|PAN-OS|11.0|TRAFFIC|Session-Start|3|src=178.62.0.1 dst=10.0.4.131 spt=3861 dpt=22 proto=TCP action=allow msg="clean connection traffic"
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"159.69.1.5","dst_ip":"10.0.2.130","src_port":27055,"dst_port":3306,"action":"allow","severity":"info","proto":"TCP","message":"standard network ingress"}
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"27.115.1.5","dst_ip":"10.0.9.78","src_port":33620,"dst_port":8443,"action":"allow","severity":"info","proto":"TCP","message":"standard network ingress"}
+src=103.21.244.5 dst=10.0.10.141 spt=31130 dpt=53 proto=TCP action=allow bytes=58451 duration=303ms msg="network session established"
+src=198.51.100.23 dst=10.0.5.198 spt=53534 dpt=8443 proto=TCP action=allow bytes=15304 duration=68ms msg="network session established"
+Aug 31 12:00:00 srv-06 systemd[2765]: Successful connection from 142.93.1.5 port 31574 to 10.0.7.45 port 80
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"122.160.1.5","dst_ip":"10.0.10.50","src_port":21198,"dst_port":8080,"action":"allow","severity":"info","proto":"TCP","message":"standard network ingress"}
+Aug 31 12:00:00 srv-09 systemd[3163]: Successful connection from 45.33.10.8 port 51070 to 10.0.9.65 port 8443
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"191.96.1.5","dst_ip":"10.0.9.183","src_port":24927,"dst_port":80,"action":"allow","severity":"info","proto":"UDP","message":"standard network ingress"}
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"188.166.1.5","dst_ip":"10.0.4.149","src_port":26047,"dst_port":8080,"action":"allow","severity":"info","proto":"UDP","message":"standard network ingress"}
+CEF:0|Palo Alto Networks|PAN-OS|11.0|TRAFFIC|Session-Start|3|src=188.166.1.5 dst=10.0.5.74 spt=24296 dpt=8080 proto=UDP action=allow msg="clean connection traffic"
+src=14.139.1.5 dst=10.0.4.104 spt=48748 dpt=53 proto=TCP action=allow bytes=43581 duration=115ms msg="network session established"
+Aug 31 12:00:00 srv-02 systemd[3850]: Successful connection from 217.70.1.5 port 47760 to 10.0.4.155 port 22
+Aug 31 12:00:00 srv-03 systemd[6222]: Successful connection from 117.192.0.1 port 3672 to 10.0.6.53 port 80
+src=210.140.1.5 dst=10.0.2.77 spt=58762 dpt=8443 proto=TCP action=allow bytes=43162 duration=252ms msg="network session established"
+CEF:0|Palo Alto Networks|PAN-OS|11.0|TRAFFIC|Session-Start|3|src=95.173.136.1 dst=10.0.0.183 spt=64479 dpt=8443 proto=UDP action=allow msg="clean connection traffic"
+CEF:0|Palo Alto Networks|PAN-OS|11.0|TRAFFIC|Session-Start|3|src=27.115.1.5 dst=10.0.5.102 spt=6609 dpt=8443 proto=UDP action=allow msg="clean connection traffic"
+Aug 31 12:00:00 srv-07 systemd[7940]: Successful connection from 1.2.3.4 port 38097 to 10.0.0.35 port 8443
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"34.201.5.12","dst_ip":"10.0.4.40","src_port":61687,"dst_port":3306,"action":"allow","severity":"info","proto":"UDP","message":"standard network ingress"}
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"122.160.1.5","dst_ip":"10.0.8.229","src_port":22535,"dst_port":8080,"action":"allow","severity":"info","proto":"TCP","message":"standard network ingress"}
+Aug 31 12:00:00 srv-05 systemd[3919]: Successful connection from 178.62.0.1 port 48189 to 10.0.6.148 port 8080
+src=45.33.10.8 dst=10.0.0.129 spt=23169 dpt=443 proto=TCP action=allow bytes=61320 duration=184ms msg="network session established"
+src=27.115.1.5 dst=10.0.10.9 spt=12946 dpt=443 proto=UDP action=allow bytes=56299 duration=157ms msg="network session established"
+CEF:0|Palo Alto Networks|PAN-OS|11.0|TRAFFIC|Session-Start|3|src=14.139.1.5 dst=10.0.5.23 spt=41580 dpt=8443 proto=TCP action=allow msg="clean connection traffic"
+CEF:0|Palo Alto Networks|PAN-OS|11.0|TRAFFIC|Session-Start|3|src=185.220.101.5 dst=10.0.6.149 spt=19857 dpt=3306 proto=TCP action=allow msg="clean connection traffic"
+Aug 31 12:00:00 srv-02 systemd[5303]: Successful connection from 202.12.27.33 port 62580 to 10.0.1.85 port 443
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"8.8.8.8","dst_ip":"10.0.8.131","src_port":61110,"dst_port":8080,"action":"allow","severity":"info","proto":"TCP","message":"standard network ingress"}
+src=202.12.27.33 dst=10.0.10.168 spt=41505 dpt=8443 proto=TCP action=allow bytes=46030 duration=42ms msg="network session established"
+src=115.240.1.8 dst=10.0.0.225 spt=62649 dpt=80 proto=UDP action=allow bytes=5555 duration=341ms msg="network session established"
+CEF:0|Palo Alto Networks|PAN-OS|11.0|TRAFFIC|Session-Start|3|src=1.2.3.4 dst=10.0.7.18 spt=45686 dpt=3306 proto=TCP action=allow msg="clean connection traffic"
+src=27.115.1.5 dst=10.0.2.182 spt=32672 dpt=3306 proto=UDP action=allow bytes=61070 duration=221ms msg="network session established"
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"202.12.27.33","dst_ip":"10.0.4.70","src_port":37281,"dst_port":3306,"action":"allow","severity":"info","proto":"UDP","message":"standard network ingress"}
+Aug 31 12:00:00 srv-05 systemd[2324]: Successful connection from 210.140.1.5 port 43304 to 10.0.1.109 port 3306
+src=1.14.0.5 dst=10.0.10.93 spt=49194 dpt=80 proto=TCP action=allow bytes=28784 duration=116ms msg="network session established"
+CEF:0|Palo Alto Networks|PAN-OS|11.0|TRAFFIC|Session-Start|3|src=45.33.10.8 dst=10.0.3.240 spt=20266 dpt=22 proto=TCP action=allow msg="clean connection traffic"
+CEF:0|Palo Alto Networks|PAN-OS|11.0|TRAFFIC|Session-Start|3|src=217.70.1.5 dst=10.0.3.160 spt=30212 dpt=8080 proto=TCP action=allow msg="clean connection traffic"
+Aug 31 12:00:00 srv-04 systemd[6540]: Successful connection from 115.240.1.8 port 54926 to 10.0.5.245 port 80
+CEF:0|Palo Alto Networks|PAN-OS|11.0|TRAFFIC|Session-Start|3|src=34.201.5.12 dst=10.0.10.163 spt=25414 dpt=8443 proto=TCP action=allow msg="clean connection traffic"
+Aug 31 12:00:00 srv-05 systemd[7312]: Successful connection from 77.88.55.66 port 33613 to 10.0.7.56 port 80
+Aug 31 12:00:00 srv-09 systemd[7542]: Successful connection from 95.173.136.1 port 59650 to 10.0.10.94 port 22
+CEF:0|Palo Alto Networks|PAN-OS|11.0|TRAFFIC|Session-Start|3|src=202.12.27.33 dst=10.0.10.65 spt=57997 dpt=8443 proto=UDP action=allow msg="clean connection traffic"
+src=117.192.0.1 dst=10.0.1.31 spt=21264 dpt=80 proto=UDP action=allow bytes=15248 duration=365ms msg="network session established"
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"185.220.101.5","dst_ip":"10.0.10.12","src_port":26556,"dst_port":53,"action":"allow","severity":"info","proto":"UDP","message":"standard network ingress"}
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"77.88.55.66","dst_ip":"10.0.8.4","src_port":53293,"dst_port":8080,"action":"allow","severity":"info","proto":"TCP","message":"standard network ingress"}
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"185.220.101.5","dst_ip":"10.0.6.165","src_port":62210,"dst_port":3306,"action":"allow","severity":"info","proto":"UDP","message":"standard network ingress"}
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"27.115.1.5","dst_ip":"10.0.2.202","src_port":39240,"dst_port":3306,"action":"allow","severity":"info","proto":"TCP","message":"standard network ingress"}
+src=165.227.1.5 dst=10.0.4.84 spt=36819 dpt=8080 proto=UDP action=allow bytes=60378 duration=11ms msg="network session established"
+Aug 31 12:00:00 srv-04 systemd[4674]: Successful connection from 159.69.1.5 port 41680 to 10.0.5.20 port 80
+CEF:0|Palo Alto Networks|PAN-OS|11.0|TRAFFIC|Session-Start|3|src=1.2.3.4 dst=10.0.4.199 spt=55414 dpt=80 proto=TCP action=allow msg="clean connection traffic"
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"165.227.1.5","dst_ip":"10.0.3.174","src_port":9411,"dst_port":22,"action":"allow","severity":"info","proto":"TCP","message":"standard network ingress"}
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"34.201.5.12","dst_ip":"10.0.5.13","src_port":6934,"dst_port":22,"action":"allow","severity":"info","proto":"UDP","message":"standard network ingress"}
+CEF:0|Palo Alto Networks|PAN-OS|11.0|TRAFFIC|Session-Start|3|src=117.192.0.1 dst=10.0.4.188 spt=46469 dpt=443 proto=TCP action=allow msg="clean connection traffic"
+Aug 31 12:00:00 srv-02 systemd[2660]: Successful connection from 210.140.1.5 port 58006 to 10.0.10.143 port 80
+Aug 31 12:00:00 srv-01 systemd[7324]: Successful connection from 188.166.1.5 port 59974 to 10.0.7.202 port 53
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"122.160.1.5","dst_ip":"10.0.8.177","src_port":42126,"dst_port":443,"action":"allow","severity":"info","proto":"UDP","message":"standard network ingress"}
+Aug 31 12:00:00 srv-05 systemd[9919]: Successful connection from 151.106.0.1 port 21891 to 10.0.5.140 port 8080
+src=77.88.55.66 dst=10.0.5.197 spt=53248 dpt=8443 proto=TCP action=allow bytes=32524 duration=178ms msg="network session established"
+src=202.12.27.33 dst=10.0.2.190 spt=8764 dpt=8443 proto=UDP action=allow bytes=37281 duration=77ms msg="network session established"
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"8.8.8.8","dst_ip":"10.0.10.207","src_port":51906,"dst_port":80,"action":"allow","severity":"info","proto":"TCP","message":"standard network ingress"}
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"210.140.1.5","dst_ip":"10.0.3.131","src_port":17844,"dst_port":53,"action":"allow","severity":"info","proto":"UDP","message":"standard network ingress"}
+Aug 31 12:00:00 srv-02 systemd[6781]: Successful connection from 117.192.0.1 port 62604 to 10.0.4.135 port 3306
+Aug 31 12:00:00 srv-03 systemd[5230]: Successful connection from 159.69.1.5 port 1746 to 10.0.4.45 port 8443
+CEF:0|Palo Alto Networks|PAN-OS|11.0|TRAFFIC|Session-Start|3|src=52.90.4.1 dst=10.0.8.25 spt=50471 dpt=53 proto=TCP action=allow msg="clean connection traffic"
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"85.118.0.12","dst_ip":"10.0.0.84","src_port":34595,"dst_port":443,"action":"allow","severity":"info","proto":"UDP","message":"standard network ingress"}
+src=45.33.10.8 dst=10.0.9.170 spt=25657 dpt=8443 proto=UDP action=allow bytes=41208 duration=92ms msg="network session established"
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"165.227.1.5","dst_ip":"10.0.7.229","src_port":42609,"dst_port":80,"action":"allow","severity":"info","proto":"UDP","message":"standard network ingress"}
+CEF:0|Palo Alto Networks|PAN-OS|11.0|TRAFFIC|Session-Start|3|src=185.220.101.5 dst=10.0.8.205 spt=53602 dpt=443 proto=UDP action=allow msg="clean connection traffic"
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"34.201.5.12","dst_ip":"10.0.7.76","src_port":22829,"dst_port":53,"action":"allow","severity":"info","proto":"TCP","message":"standard network ingress"}
+src=185.220.101.5 dst=10.0.2.119 spt=62203 dpt=80 proto=UDP action=allow bytes=3008 duration=449ms msg="network session established"
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"1.2.3.4","dst_ip":"10.0.3.187","src_port":4433,"dst_port":22,"action":"allow","severity":"info","proto":"TCP","message":"standard network ingress"}
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"85.118.0.12","dst_ip":"10.0.1.203","src_port":14062,"dst_port":3306,"action":"allow","severity":"info","proto":"UDP","message":"standard network ingress"}
+Aug 31 12:00:00 srv-03 systemd[3444]: Successful connection from 202.12.27.33 port 19966 to 10.0.8.250 port 53
+CEF:0|Palo Alto Networks|PAN-OS|11.0|TRAFFIC|Session-Start|3|src=103.21.244.5 dst=10.0.9.149 spt=53674 dpt=80 proto=UDP action=allow msg="clean connection traffic"
+src=191.96.1.5 dst=10.0.10.89 spt=50631 dpt=443 proto=TCP action=allow bytes=8609 duration=257ms msg="network session established"
+Aug 31 12:00:00 srv-03 systemd[3830]: Successful connection from 117.192.0.1 port 12695 to 10.0.3.251 port 53
+Aug 31 12:00:00 srv-03 systemd[1260]: Successful connection from 117.192.0.1 port 29117 to 10.0.1.244 port 53
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"210.140.1.5","dst_ip":"10.0.2.75","src_port":25495,"dst_port":22,"action":"allow","severity":"info","proto":"TCP","message":"standard network ingress"}
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"198.51.100.23","dst_ip":"10.0.0.42","src_port":57080,"dst_port":8443,"action":"allow","severity":"info","proto":"UDP","message":"standard network ingress"}
+{"timestamp":"2026-08-31T12:00:00Z","src_ip":"34.201.5.12","dst_ip":"10.0.5.135","src_port":35034,"dst_port":8443,"action":"allow","severity":"info","proto":"TCP","message":"standard network ingress"}
+Aug 31 12:00:00 srv-07 systemd[7514]: Successful connection from 8.8.8.8 port 56919 to 10.0.8.90 port 22
+Aug 31 12:00:00 srv-09 systemd[3353]: Successful connection from 159.69.1.5 port 4928 to 10.0.8.164 port 8443
+src=1.2.3.4 dst=10.0.8.22 spt=3830 dpt=3306 proto=TCP action=allow bytes=16298 duration=80ms msg="network session established"

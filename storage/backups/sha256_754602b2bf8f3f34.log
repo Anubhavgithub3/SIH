@@ -1,0 +1,1 @@
+src=10.0.0.5 dst=8.8.8.8 action=deny

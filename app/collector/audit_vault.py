@@ -26,32 +26,38 @@ def audit_and_backup_raw_log(raw_text: str, source: str = 'api') -> dict:
     """
     Saves raw logs with SHA-256 cryptographic hash before parsing
     for data safety, auditing, and immutable backup.
+    Deduplicates on disk and memory by SHA-256 content hash.
     """
     sha256_hash = calculate_sha256(raw_text)
     timestamp = datetime.now(timezone.utc).isoformat()
-    short_hash = sha256_hash[:12]
-    filename = f"{short_hash}_{int(time.time())}.log"
+    short_hash = sha256_hash[:16]
+    filename = f"sha256_{short_hash}.log"
     backup_file_path = BACKUP_DIR / filename
 
-    # Save raw backup to disk
-    try:
-        with open(backup_file_path, 'w', encoding='utf-8') as f:
-            f.write(raw_text)
-    except Exception as e:
-        print(f"Warning: Failed to write audit backup: {e}")
+    # Save raw backup to disk ONLY if it doesn't already exist
+    if not backup_file_path.exists():
+        try:
+            with open(backup_file_path, 'w', encoding='utf-8') as f:
+                f.write(raw_text)
+        except Exception as e:
+            print(f"Warning: Failed to write audit backup: {e}")
 
     audit_entry = {
         'sha256_hash': sha256_hash,
-        'short_hash': short_hash,
+        'short_hash': sha256_hash[:12],
         'timestamp': timestamp,
         'bytes_size': len(raw_text.encode('utf-8')),
         'source': source,
         'tamper_proof_status': 'VERIFIED',
         'backup_path': str(backup_file_path),
-        'backup_id': f"BK-{short_hash.upper()}"
+        'backup_id': f"BK-{sha256_hash[:12].upper()}"
     }
 
-    # Store in memory audit log (keep last 500)
+    # Deduplicate in-memory audit store
+    existing_idx = next((i for i, item in enumerate(AUDIT_LOG_STORE) if item['sha256_hash'] == sha256_hash), None)
+    if existing_idx is not None:
+        AUDIT_LOG_STORE.pop(existing_idx)
+
     AUDIT_LOG_STORE.insert(0, audit_entry)
     if len(AUDIT_LOG_STORE) > 500:
         AUDIT_LOG_STORE.pop()
@@ -62,6 +68,7 @@ def audit_and_backup_raw_log(raw_text: str, source: str = 'api') -> dict:
 def quarantine_payload(raw_text: str, reason: str, risk_score: float = 0.90, source: str = 'ingest') -> dict:
     """
     Quarantines unknown formats, unparseable files, or suspicious unknown threats.
+    Deduplicates on disk and memory by Quarantine ID.
     """
     sha256_hash = calculate_sha256(raw_text)
     timestamp = datetime.now(timezone.utc).isoformat()
@@ -81,11 +88,13 @@ def quarantine_payload(raw_text: str, reason: str, risk_score: float = 0.90, sou
         'file_path': str(quarantine_file_path)
     }
 
-    try:
-        with open(quarantine_file_path, 'w', encoding='utf-8') as f:
-            f.write(json.dumps(quarantine_entry, indent=2))
-    except Exception as e:
-        print(f"Warning: Failed to write quarantine file: {e}")
+    # Save to disk ONLY if not existing
+    if not quarantine_file_path.exists():
+        try:
+            with open(quarantine_file_path, 'w', encoding='utf-8') as f:
+                f.write(json.dumps(quarantine_entry, indent=2))
+        except Exception as e:
+            print(f"Warning: Failed to write quarantine file: {e}")
 
     # Remove existing duplicate if present
     existing_idx = next((i for i, item in enumerate(QUARANTINE_STORE) if item['quarantine_id'] == quarantine_id), None)
