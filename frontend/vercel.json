@@ -1,0 +1,37 @@
+{
+  "framework": "vite",
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "https://sih-ydlw.onrender.com/api/$1"
+    },
+    {
+      "source": "/health",
+      "destination": "https://sih-ydlw.onrender.com/health"
+    },
+    {
+      "source": "/summary",
+      "destination": "https://sih-ydlw.onrender.com/summary"
+    },
+    {
+      "source": "/events",
+      "destination": "https://sih-ydlw.onrender.com/events"
+    },
+    {
+      "source": "/overview",
+      "destination": "https://sih-ydlw.onrender.com/overview"
+    },
+    {
+      "source": "/ml/(.*)",
+      "destination": "https://sih-ydlw.onrender.com/ml/$1"
+    },
+    {
+      "source": "/ingest",
+      "destination": "https://sih-ydlw.onrender.com/ingest"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
